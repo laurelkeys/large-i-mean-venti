@@ -1,5 +1,5 @@
+# ref.: James McCaffrey's "Swarm Intelligence Optimization using Python" talk
 # note: this is a numerical optimization heuristic
-# ref.: James McCaffrey: Swarm Intelligence Optimization using Python
 
 '''Minimization of the Rastrigin function using particle swarm optimization (PSO)'''
 
