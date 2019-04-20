@@ -72,7 +72,7 @@ def Solve(max_epochs, n, dim, min_x, max_x, seed=0):
     epoch = 0
     while epoch < max_epochs:    
         if epoch % 10 == 0 and epoch > 1:
-            print(f'Epoch = {epoch} best error = {swarm_best_err:.3f}')
+            print(f'Epoch = {epoch}, best error = {swarm_best_err:.3f}')
             
         # process each particle
         for i in range(n):
@@ -118,9 +118,9 @@ max_epochs    = 100
 min_x, max_x  = -10.0, 10.0
 print(f'Setting num_particles  = {num_particles}')
 print(f'        max_epochs     = {max_epochs}')
-print(f'        [min_x, max_x] = [{min_x}, {max_x}]\n')
+print(f'       [min_x, max_x]  = [{min_x}, {max_x}]\n')
 
-best_position = Solve(max_epochs, num_particles, dim, min_x, max_x) # TODO set Solve's seed for different results
+best_position = Solve(max_epochs, num_particles, dim, min_x, max_x, seed=random.random())
 
 print(f'\nBest solution found: \n {" ".join(map(lambda i: f"{i:.4f}", best_position))}')
 print(f'Error of best solution = {error(best_position):.6f}')
