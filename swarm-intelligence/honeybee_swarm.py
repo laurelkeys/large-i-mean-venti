@@ -1,4 +1,5 @@
-# ref.: "A modified Artificial Bee Colony algorithm for real-parameter optimization" article
+# ref.: "A modified Artificial Bee Colony algorithm for real-parameter optimization" article,  
+#       and Algorithm 2 of https://abc.erciyes.edu.tr/pub/NevImpOfABC.pdf
 
 from math import floor
 
@@ -6,13 +7,8 @@ import copy
 import random
 import numpy as np
 
-infinity = float('inf')
-
-# maps a value v from [low1, high1] to a value in [low2, high2]
-bound = lambda v, low1, high1, low2, high2: (v - low1) * ((high2-low2) / (high1-low1)) + low2
-
 class Honeybee:
-    def __init__(self, lower_bound, upper_bound, objective_func, fitness_func=None):
+    def __init__(self, lower_bound, upper_bound, objective_func):
         assert(len(lower_bound) == len(upper_bound))
 
         self.solution = list() # genome
@@ -20,21 +16,23 @@ class Honeybee:
             self.solution.append(min + random.random()*(max - min))
         
         self.objective_func = objective_func
-        self.value = self.objective_func(self.solution) # objective function value for the solution
-        
-        self.fitness_func = (fitness_func if fitness_func != None else
-            lambda x: 1 / (1 + x.value) if x.value >= 0 else 1 + abs(x.value))
-        self.calculate_fitness()
-
         self.unimproved_trials = 0 # once this reaches the limit it becomes a scout bee (abandonment criteria)
     
-    def calculate_fitness(self):
-        self.fitness = self.fitness_func(self.solution)
+    def get_value(self):
+        # objective function value (solution cost)
+        return self.objective_func(self.solution) # phenotype
     
-    def mutate_locally_with_crossover(self, locus, partner, locus_lower_bound, locus_upper_bound):
+    def get_fitness(self):
+        # considers a minimization problem (the value itself could be used on a maximization problem)
+        value = self.get_value()
+        if value >= 0:
+            return 1 / (1 + value)
+        else:
+            return 1 + abs(value)
+    
+    def mutate(self, locus, partner, locus_lower_bound, locus_upper_bound):
         # the locus is the solution's dimension that will be crossed-over and mutated (i.e. the mutated gene index)
         mutated_gene = self.solution[locus] + random.uniform(-1, 1) * (self.solution[locus] - partner.solution[locus])
-
         if mutated_gene < locus_lower_bound:
             self.solution[locus] = locus_lower_bound
         elif mutated_gene > locus_upper_bound:
@@ -44,8 +42,8 @@ class Honeybee:
 
 
 class Hive:
-    def __init__(self, lower_bound, upper_bound, objective_func, fitness_func=None,
-                 selection_func=None, swarm_size=20, max_cycles=200, max_unimproved_trials=None,
+    def __init__(self, lower_bound, upper_bound, objective_func, 
+                 swarm_size=20, max_cycles=200, max_unimproved_trials=4,
                  initial_number_of_scouts=1, initial_percentage_of_employees=0.5):
 
         assert(len(lower_bound) == len(upper_bound))
@@ -53,32 +51,39 @@ class Hive:
         self.upper_bound = upper_bound
         self.objective_func = objective_func
 
-        self.fitness_func = fitness_func # FIXME test if None
-        self.selection_func = selection_func # FIXME test if None
-
         self.swarm_size = swarm_size
         self.number_of_scouts = initial_number_of_scouts
         self.number_of_employees = int(initial_percentage_of_employees * self.swarm_size)
         self.number_of_onlookers = self.swarm_size - self.number_of_employees - self.number_of_scouts
         # assert(self.number_of_scouts + self.number_of_employees + self.number_of_onlookers == self.swarm_size)
 
-        self.max_cycles = max_cycles
-
         self.dim = len(lower_bound) # problem dimension
-        self.max_unimproved_trials = self.dim * self.number_of_onlookers if max_unimproved_trials == None else max_unimproved_trials
+        self.cycle = 0
+        self.max_cycles = max_cycles
+        self.max_unimproved_trials = max_unimproved_trials # self.dim * self.number_of_onlookers
 
-        self.best = infinity # fitness value of the best solution found (NOTE considers a minimization problem)
-        self.best_solution = None # best solution found
+        self.best = None # best solution found so far
+        self.best_fitness = float('inf') # best solution's fitness value
 
-        self.swarm = [Honeybee(lower_bound, upper_bound, objective_func, fitness_func) for _ in range(self.swarm_size)]
+        self.swarm = [Honeybee(lower_bound, upper_bound, objective_func) for _ in range(self.swarm_size)]
         self.evaluate() # find the best (most fit) honeybee
-        # self.calculate_probabilities()
+    
+    def solve(self):
+        self.cycle = 1
+        while self.cycle < self.max_cycles:
+            # employed bees phase
+            for honeybee_index in range(self.swarm_size):
+                self.send_employee(honeybee_index)
+            self.evaluate() # memorizes the best solution achieved so far
+            # scout bees phase
+            # TODO
 
     def evaluate(self):
-        current_best_index, current_best = min(enumerate([honeybee.fitness for honeybee in self.swarm]), key=lambda t: t[1]) # TODO test this
-        if current_best < self.best:
-            self.best = current_best
-            self.best_solution = self.swarm[current_best_index].solution # TODO check if copy() is needed
+        for i in range(self.swarm_size):
+            fitness = self.swarm[i].get_fitness()
+            if fitness < self.best_fitness:
+                self.best = copy.deepcopy(self.swarm[i])
+                self.best_fitness = fitness
 
     def calculate_probabilities(self):
         # TODO use the fitness_func if it's not None
@@ -98,10 +103,10 @@ class Hive:
                                                 locus_lower_bound=self.lower_bound[honeybee_index], 
                                                 locus_upper_bound=self.upper_bound[honeybee_index])
         
-        neighboor.value = self.objective_func(neighboor.solution) # neighboor.objective_func(neighboor.solution)
+        # neighboor.calculate_value()
         neighboor.calculate_fitness()
         
-        if neighboor.fitness > self.swarm[honeybee_index].fitness:
+        if neighboor.fitness > self.swarm[honeybee_index].fitness: # FIXME check this comparison
             self.swarm[honeybee_index] = copy.deepcopy(neighboor)
             self.swarm[honeybee_index].unimproved_trials = 0
         else:
