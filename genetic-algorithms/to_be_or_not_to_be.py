@@ -70,7 +70,7 @@ class Population:
         for individual in self.population:
             individual.calculate_fitness(self.target)
     
-    # makes a new mating pool
+    # makes a new mating pool based on roulette wheel selection
     def natural_selection(self):
         self.mating_pool = list() # clears the pool
         max_fitness = max(map(lambda individual: individual.fitness, self.population))

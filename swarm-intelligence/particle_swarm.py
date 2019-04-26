@@ -36,7 +36,7 @@ class Particle:
         self.error = error(self.position) # current error
         
         self.best_pos = copy(self.position) # particle's best reached position
-        self.best_err = self.error               # particle's best reached error
+        self.best_err = self.error          # particle's best reached error
 
 def Solve(max_epochs, n, dim, min_x, max_x, seed=0):
     '''Parameters
