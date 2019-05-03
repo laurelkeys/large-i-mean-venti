@@ -5,6 +5,7 @@
 ## to_be_or_not_to_be[.py](https://github.com/laurelkeys/large-i-mean-venti/blob/master/genetic-algorithms/to_be_or_not_to_be.py)
 
 A genetic algorithm to find the phrase "*To be or not to be.*" in a pool of random strings.
+
 Based on Daniel Shiffman's "The **Nature** of Code", [chapter 9](https://natureofcode.com/book/chapter-9-the-evolution-of-code/).
 
 ### Example usage
@@ -19,6 +20,7 @@ Based on Daniel Shiffman's "The **Nature** of Code", [chapter 9](https://natureo
 ## particle_swarm[.py](https://github.com/laurelkeys/large-i-mean-venti/blob/master/swarm-intelligence/particle_swarm.py)
 
 A simple implementation of Particle Swarm Optimization ([PSO](https://en.wikipedia.org/wiki/Particle_swarm_optimization)) for minimizing the [Rastrigin function](https://en.wikipedia.org/wiki/Rastrigin_function).
+
 Heavily based on James McCaffrey's [talk](https://www.youtube.com/watch?v=bVDX_UwthZI).
 
 ### Example usage
@@ -53,9 +55,9 @@ A simple implementation of Artificial Bee Colony ([ABC](http://www.scholarpedia.
 ```
 lower_bound: Variable's domain lower bound
 upper_bound: Variable's domain upper bound
-swarm_size: Total number of bees
-max_cycles: Maximum number of cycles before halting
-objective_func: Objective function
+swarm_size:  Total number of bees
+max_cycles:  Maximum number of cycles before halting
+objective_func:  Objective function
 objective_value: Objective function's target value
 max_unimproved_trials: Maximum number of cycles a bee can exploit it's "food source" 
                        before becoming a scout bee
@@ -71,13 +73,14 @@ def poppins(vector):
         if gene == ord(target_char):
             score += 1
     return score
+dim = len(target)
 
 model = Hive(lower_bound=[ord('a')]*dim, 
              upper_bound=[ord('z')]*dim, 
              swarm_size=100,  
              max_cycles=3000, 
              objective_func=poppins,
-             objective_value=len(target))
+             objective_value=dim)
 ```
 
 **Execution**
