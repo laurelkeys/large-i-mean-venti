@@ -52,16 +52,13 @@ A simple implementation of Artificial Bee Colony ([ABC](http://www.scholarpedia.
 
 ### The Hive problem model class
 **Arguments**
-```
-lower_bound: Variable's domain lower bound
-upper_bound: Variable's domain upper bound
-swarm_size:  Total number of bees
-max_cycles:  Maximum number of cycles before halting
-objective_func:  Objective function
-objective_value: Objective function's target value
-max_unimproved_trials: Maximum number of cycles a bee can exploit it's "food source" 
-                       before becoming a scout bee
-```
+- `lower_bound`: Variable domain lower bound
+- `upper_bound`: Variable domain upper bound
+- `swarm_size`: Total number of bees
+- `max_cycles`: Maximum number of cycles before halting
+- `objective_func`: Objective function
+- `objective_value`: Objective function target value
+- `max_unimproved_trials`: Maximum number of cycles a bee can exploit it's "food source" before becoming a scout bee
 
 ### Example usage
 **Model**
