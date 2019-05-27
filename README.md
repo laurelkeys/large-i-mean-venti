@@ -19,7 +19,9 @@ Image color clustering into k groups using the [k-means](https://en.wikipedia.or
 
 **Pixels with original color**         |  **Pixels grouped into k=5 clusters** 
 :-------------------------:|:-------------------------:
-![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian_plot.png =500x)  |  ![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_clusters.png =500x)
+<img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian_plot.png" width="500"/>  |  <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_clusters.png" width="500"/>
+
+
 
 <!-- -->
 # genetic-algorithms
