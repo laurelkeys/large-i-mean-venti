@@ -1,9 +1,11 @@
 # Specific
 clustering/*.png
-clustering/i/
-clustering/o/
+clustering/i/*
+clustering/o/*
 !clustering/i/lenna*
+!clustering/i/mondrian*
 !clustering/o/lenna*
+!clustering/o/mondrian*
 
 # VS Code
 .vscode

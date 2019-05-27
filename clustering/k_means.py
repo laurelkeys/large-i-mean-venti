@@ -5,12 +5,12 @@ import functools
 import numpy as np
 import matplotlib.image as img
 import matplotlib.pyplot as plt
+
 from os import path
 from sys import argv
 from time import time
 from sklearn.cluster import KMeans
 from mpl_toolkits.mplot3d import Axes3D
-
 
 def duration(func):
     @functools.wraps(func)
@@ -42,35 +42,61 @@ def cluster(image, n_clusters, n_init=10, max_iter=300):
     compressed = np.reshape(compressed, (image.shape))
     return compressed, k_colors.labels_, k_colors.cluster_centers_
 
-def plot_3d(normalized_image, show=True, save_fname=None, use_rgb_colors=True):
+def plot_3d(image, show=True, save_fname=None, use_rgb_colors=True):
     '''
     Plots the image's pixels into the 3D space defined by (x, y, z) = (R, G, B)
-    Note: the RGB values must be mapped from [0, 255] to [0, 1]
     '''
-    r = normalized_image[:, :, 0].flatten()
-    g = normalized_image[:, :, 1].flatten()
-    b = normalized_image[:, :, 2].flatten()
+    r = image[:, :, 0].flatten()
+    g = image[:, :, 1].flatten()
+    b = image[:, :, 2].flatten()
 
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.scatter(r, g, b, c=None if not use_rgb_colors
-               else normalized_image.reshape(-1, 3)) # colors each point with it's RGB color value
+               else image.reshape(-1, 3) / 255) # colors each point with it's RGB color value
 
     if save_fname: plt.savefig(save_fname)
     if show: plt.show()
 
-def plot_clusters(normalized_image, labels, colors, show=True, save_fname=None):
+def plot_clusters(image, labels, colors, show=True, save_fname=None):
     '''
     Plots the original image's pixels with their cluster colors
     '''
-    r = normalized_image[:, :, 0].flatten()
-    g = normalized_image[:, :, 1].flatten()
-    b = normalized_image[:, :, 2].flatten()
+    r = image[:, :, 0].flatten()
+    g = image[:, :, 1].flatten()
+    b = image[:, :, 2].flatten()
 
     fig = plt.figure()
     ax = Axes3D(fig)
-    ax.scatter(r, g, b, c=colors[labels])
+    ax.scatter(r, g, b, c=colors[labels] / 255)
 
+    if save_fname: plt.savefig(save_fname)
+    if show: plt.show()
+
+def plot_histogram(n_clusters, colors, show=True, save_fname=None):
+    '''
+    Plots the original image's pixels with their cluster colors
+    Note: the RGB values must be mapped from [0, 255] to [0, 1]
+    '''
+    hist, _ = np.histogram(labels, bins=n_clusters)
+    hist = hist.astype("float") / hist.sum()
+    
+    # order by decreasing color frequency
+    colors = colors[(-hist).argsort()]
+    hist = hist[(-hist).argsort()]
+    
+    chart = np.zeros((50, 500, 3), dtype=np.uint8)
+
+    start = 0
+    for i in range(n_clusters):
+        end = start + hist[i] * 500
+        r, g, b = colors[i][0:3]
+        cv2.rectangle(img=chart, pt1=(int(start), 0), pt2=(int(end), 50), color=(r, g, b), thickness=-1)
+        start = end	
+    
+    plt.figure()
+    plt.axis("off")
+    plt.imshow(chart)
     if save_fname: plt.savefig(save_fname)
     if show: plt.show()
 
@@ -85,13 +111,18 @@ except:
 
 image = cv2.cvtColor(cv2.imread(image_fname), cv2.COLOR_BGR2RGB)
 k_image, labels, cluster_centers = cluster(image, n_clusters) # k colors with RGB values normalized to [0, 1] range
-print(cluster_centers)
 
 fname = path.join(save_path, f"{image_name}{n_clusters}{image_ext}")
 img.imsave(fname, k_image)
 print(f"Image saved to {fname}")
 
-plot_3d(image / 255) # maps the colors from [0, 255] to [0, 1] for color plotting
+# denormalizes values
+k_image *= 255
+cluster_centers *= 255
+
+plot_3d(image)
 plot_3d(k_image)
 
-plot_clusters(image / 255, labels, colors=cluster_centers)
+plot_clusters(image, labels, colors=cluster_centers)
+
+plot_histogram(n_clusters, colors=cluster_centers)
