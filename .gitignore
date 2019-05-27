@@ -1,5 +1,9 @@
 # Specific
 clustering/*.png
+clustering/i/
+clustering/o/
+!clustering/i/lenna*
+!clustering/o/lenna*
 
 # VS Code
 .vscode

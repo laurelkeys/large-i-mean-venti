@@ -1,3 +1,5 @@
+# ref.: http://dilloncamp.com/projects/kmeans.html and https://buzzrobot.com/@skt7
+
 import cv2
 import functools
 import numpy as np
