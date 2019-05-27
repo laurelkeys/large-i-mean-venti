@@ -55,7 +55,7 @@ def plot_3d(image, show=True, save_fname=None, use_rgb_colors=True):
     ax.scatter(r, g, b, c=None if not use_rgb_colors
                else image.reshape(-1, 3) / 255) # colors each point with it's RGB color value
 
-    if save_fname: plt.savefig(save_fname)
+    if save_fname: plt.savefig(save_fname, bbox_inches='tight')
     if show: plt.show()
 
 def plot_clusters(image, labels, colors, show=True, save_fname=None):
@@ -70,7 +70,7 @@ def plot_clusters(image, labels, colors, show=True, save_fname=None):
     ax = Axes3D(fig)
     ax.scatter(r, g, b, c=colors[labels] / 255)
 
-    if save_fname: plt.savefig(save_fname)
+    if save_fname: plt.savefig(save_fname, bbox_inches='tight')
     if show: plt.show()
 
 def plot_histogram(n_clusters, colors, show=True, save_fname=None):
@@ -97,7 +97,7 @@ def plot_histogram(n_clusters, colors, show=True, save_fname=None):
     plt.figure()
     plt.axis("off")
     plt.imshow(chart)
-    if save_fname: plt.savefig(save_fname)
+    if save_fname: plt.savefig(save_fname, bbox_inches='tight')
     if show: plt.show()
 
 try:
