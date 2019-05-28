@@ -17,10 +17,12 @@ Image color clustering into k groups using the [k-means](https://en.wikipedia.or
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/i/mondrian.jpg)  |  ![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5.jpg)
 
+**Result image color palette**
+![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_histogram.png)
+
 **Pixels with original color**         |  **Pixels grouped into k=5 clusters** 
 :-------------------------:|:-------------------------:
 <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian_plot.png" width="500"/>  |  <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_clusters.png" width="500"/>
-
 
 
 <!-- -->
