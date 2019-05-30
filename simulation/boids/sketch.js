@@ -23,15 +23,6 @@ function setup() {
     gui.add(controls, 'separation', 0, 2.5).name("Separation").step(0.1);
     gui.add(controls, 'perceptionRadius', 0, 200).name("Perception radius").step(5);
     
-    // alignmentSlider = createSlider(0, 2, 1, 0.1);
-    // cohesionSlider = createSlider(0, 2, 1, 0.1);
-    // separationSlider = createSlider(0, 2, 1, 0.1);
-    
-    // div = createDiv('');
-    // alignmentSlider.parent(div);
-    // cohesionSlider.parent(div);
-    // separationSlider.parent(div);
-    
     for (let i = 0; i < 200; i++) {
         boids.push(new Boid());
     }

@@ -2,6 +2,7 @@
 
 > - [clustering](#clustering)
 > - [genetic-algorithms](#genetic-algorithms)
+> - [simulation](#simulation)
 > - [swarm-intelligence](#swarm-intelligence)
 
 <!-- -->
@@ -43,7 +44,16 @@ Based on Daniel Shiffman's "The **Nature** of Code", [chapter 9](https://natureo
 ```
 >>> python to_be_or_not_to_be.py
 ```
-[![Image from Gyazo](https://i.gyazo.com/992ad6d9a4d433988d85b437e5d67032.gif)](https://gyazo.com/992ad6d9a4d433988d85b437e5d67032)
+[![](https://i.gyazo.com/992ad6d9a4d433988d85b437e5d67032.gif)](https://gyazo.com/992ad6d9a4d433988d85b437e5d67032)
+
+<!-- -->
+# simulation
+## [/](https://github.com/laurelkeys/large-i-mean-venti/blob/master/simulation/boids)boids
+Build upon Daniel Shiffman's [Flocking Simulation](https://www.youtube.com/watch?v=mhjuuHl6qHM), based on Craig Reynolds [Boids](http://www.red3d.com/cwr/boids/).
+
+### Example usage
+[Live demo](https://editor.p5js.org/laurelkeys/full/PLeU1a7F1) on p5.js Web Editor.
+![](https://i.gyazo.com/63a62214cf2fba0bab4356d336a3652d.gif)
 
 <!-- -->
 # swarm-intelligence
