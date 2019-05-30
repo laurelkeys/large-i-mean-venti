@@ -52,9 +52,9 @@ class Boid {
         let cohesion = steering.cohere;
         let separation = steering.separate;
         
-        alignment.mult(alignmentSlider.value());
-        cohesion.mult(cohesionSlider.value());
-        separation.mult(separationSlider.value());
+        alignment.mult(controls.alignment);
+        cohesion.mult(controls.cohesion);
+        separation.mult(controls.separation);
         
         this.acceleration.add(alignment);
         this.acceleration.add(cohesion);
