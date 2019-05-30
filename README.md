@@ -48,10 +48,12 @@ Based on Daniel Shiffman's "The **Nature** of Code", [chapter 9](https://natureo
 
 <!-- -->
 # simulation
-## [/](https://github.com/laurelkeys/large-i-mean-venti/blob/master/simulation/boids)boids
+## boids[/](https://github.com/laurelkeys/large-i-mean-venti/blob/master/simulation/boids)
 Build upon Daniel Shiffman's [Flocking Simulation](https://www.youtube.com/watch?v=mhjuuHl6qHM), based on Craig Reynolds [Boids](http://www.red3d.com/cwr/boids/).
 
 ### Example usage
+Change the following controls:
+![](https://gist.githubusercontent.com/laurelkeys/58bc9deb3a913ab65f2de6d41097f4f2/raw/397a4ff192ee7c1d98873636bd41be4bbdfbe323/boids_controls.png)
 [Live demo](https://editor.p5js.org/laurelkeys/full/PLeU1a7F1) on p5.js Web Editor.
 ![](https://i.gyazo.com/63a62214cf2fba0bab4356d336a3652d.gif)
 
@@ -138,4 +140,3 @@ model = Hive(lower_bound=[ord('a')]*dim,
  value    : 20
  solution : ['s','u','p','e','r','c','a','l','i','f','r','a','g','i','l','i','s','t','i','c']
 ```
-
