@@ -1,3 +1,34 @@
+# Topics
+
+> - [clustering](#clustering)
+> - [genetic-algorithms](#genetic-algorithms)
+> - [swarm-intelligence](#swarm-intelligence)
+
+<!-- -->
+# clustering
+## k_means[.py](https://github.com/laurelkeys/large-i-mean-venti/blob/master/clustering/k_means.py)
+Image color clustering into k groups using the [k-means](https://en.wikipedia.org/wiki/K-means_clustering) method and pixel color visualization on 3D space (where x=R, y=G and z=B).
+
+### Example usage
+```
+>>> python k_means.py i\mondrian.jpg 5 o\
+ (normalize) Δt: 0.0010 seconds
+ (cluster) Δt: 0.4169 seconds
+ Image saved to o\mondrian5.jpg
+```
+
+**Original image**         |  **Result image (with k=5)** 
+:-------------------------:|:-------------------------:
+![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/i/mondrian.jpg)  |  ![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5.jpg)
+
+**Result image color palette**
+
+![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_histogram.png)
+
+**Pixels with original color**         |  **Pixels grouped into k=5 clusters** 
+:-------------------------:|:-------------------------:
+<img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian_plot.png" width="500"/>  |  <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_clusters.png" width="500"/>
+
 
 <!-- -->
 # genetic-algorithms
