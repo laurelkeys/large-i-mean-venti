@@ -2,6 +2,7 @@
 
 > - [clustering](#clustering)
 > - [genetic-algorithms](#genetic-algorithms)
+> - [procedural-generation](#procedural-generation)
 > - [simulation](#simulation)
 > - [swarm-intelligence](#swarm-intelligence)
 
@@ -45,6 +46,17 @@ Based on Daniel Shiffman's "The **Nature** of Code", [chapter 9](https://natureo
 >>> python to_be_or_not_to_be.py
 ```
 [![](https://i.gyazo.com/992ad6d9a4d433988d85b437e5d67032.gif)](https://gyazo.com/992ad6d9a4d433988d85b437e5d67032)
+
+<!-- -->
+# procedural-generation
+
+## terrain[/](https://github.com/laurelkeys/large-i-mean-venti/blob/master/procedural-generation/terrain)
+
+3D terrain generation with [Perlin noise](https://en.wikipedia.org/wiki/Perlin_noise), based on a [video](https://www.youtube.com/watch?v=IKB1hWWedMk) by Daniel Shiffman.
+
+Check out a [live demo](https://www.openprocessing.org/sketch/729536) on OpenProcessing.
+
+![](https://gist.githubusercontent.com/laurelkeys/58bc9deb3a913ab65f2de6d41097f4f2/raw/7d9a7f6154c96bf7f43e1362bd81976bb855473a/terrain.png)
 
 <!-- -->
 # simulation

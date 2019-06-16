@@ -9,6 +9,7 @@ let flightPos = 0;
 let flightSpeed = 0.08;
 let noiseDelta = 0.16;
 let terrain = [];
+let terrainHeight = 112;
 
 function setup() {
     createCanvas(600, 600, WEBGL);
@@ -43,7 +44,7 @@ function shiftNoiseSpace() {
     for (let y = 0; y < rows; ++y) {
         let xOffset = 0;
         for (let x = 0; x < cols; ++x) {
-            terrain[x][y] = map(noise(xOffset, yOffset), 0, 1, -100, 100);
+            terrain[x][y] = map(noise(xOffset, yOffset), 0, 1, -terrainHeight, terrainHeight);
             xOffset += noiseDelta;
         }
         yOffset += noiseDelta;
