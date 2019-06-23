@@ -3,41 +3,54 @@
 
 const PINK = "#ffc0cb"
 
-let rate = 30;
-let size = 20;
-let weight = 2;
-let bias = 0.5;
+const SIZE = 30;
+const MARGIN = SIZE;
+const WEIGHT = 2;
 
-let x = 0;
-let y = 0;
+let x = MARGIN;
+let y = MARGIN;
+
+let Controls = function () {
+    this.bias = 0.5;
+};
+let controls = new Controls();
+
+function setupGUI() {
+    let gui = new dat.GUI({
+        width: 295
+    });
+    gui.close();
+    gui.add(controls, 'bias', 0, 1).name("Bias").step(0.05);
+}
 
 function setup() {
     createCanvas(600, 600);
-    frameRate(rate);
+    setupGUI();
+    frameRate(30);
     background(PINK);
 }
 
 function draw() {
-    if (y <= height) {
+    if (y < height - MARGIN) {
         push();
         translate(x, y);
-        drawSlash(bias);
+        drawSlash(1.0 - controls.bias);
         pop();
-    
-        x += size;
-        if (x > width) {
-            x = 0;
-            y += size;
+
+        x += SIZE;
+        if (x >= width - MARGIN) {
+            x = MARGIN;
+            y += SIZE;
         }
     }
 }
 
-function drawSlash() {
+function drawSlash(bias) {
     stroke(0);
-    strokeWeight(weight);
+    strokeWeight(WEIGHT);
     if (random() < bias) {
-        line(0, 0, size, size); // \
+        line(0, 0, SIZE, SIZE); // \
     } else {
-        line(0, size, size, 0); // /
+        line(0, SIZE, SIZE, 0); // /
     }
 }
