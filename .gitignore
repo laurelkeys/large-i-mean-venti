@@ -1,4 +1,5 @@
 # Specific
+shaders/
 clustering/*.png
 clustering/i/*
 clustering/o/*
