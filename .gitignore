@@ -1,5 +1,4 @@
 # Specific
-shaders/
 clustering/*.png
 clustering/i/*
 clustering/o/*
@@ -7,6 +6,8 @@ clustering/o/*
 !clustering/i/mondrian*
 !clustering/o/lenna*
 !clustering/o/mondrian*
+
+shaders/
 
 # VS Code
 .vscode
