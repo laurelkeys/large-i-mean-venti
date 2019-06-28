@@ -7,6 +7,10 @@ clustering/o/*
 !clustering/o/lenna*
 !clustering/o/mondrian*
 
+natural-language/lstm_test.py
+natural-language/seq2seq.py
+natural-language/por.txt
+
 shaders/
 
 # VS Code
