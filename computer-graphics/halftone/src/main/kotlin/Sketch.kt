@@ -13,9 +13,16 @@ class Sketch : PApplet() {
 
     private val img: PImage by lazy { loadImage("woman.jpg") }
     private val cam: PeasyCam by lazy { PeasyCam(this, width / 1.0) }
-    private var particles: Int = 50
+    private var particleSizes = listOf(
+        //1, 2, 3,
+        4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        26, 27, 28, 30, 32, 34, 36, 39, 42, 46,
+        51, 56, 63, 72, 84, 103, 128, 168
+    ) // FIXME generate procedurally
+    private var particleSizeIndex = 4
         set(value) {
-            field = max(1, min(img.width, value))
+            field = max(0, min(particleSizes.size - 1, value))
         }
 
     override fun settings() {
@@ -26,6 +33,7 @@ class Sketch : PApplet() {
         img.resize(width, height)
         cam.setMinimumDistance(100.0)
         cam.setMaximumDistance(1500.0)
+        print(particleSizes)
     }
 
     override fun draw() {
@@ -35,8 +43,7 @@ class Sketch : PApplet() {
         noStroke()
         ortho()
 
-        val particleSize = width.div(particles)
-
+        val particleSize = particleSizes[particleSizeIndex]
         img.loadPixels()
         for (y in 0 until img.height step particleSize) {
             for (x in 0 until img.width step particleSize) {
@@ -50,11 +57,11 @@ class Sketch : PApplet() {
     }
 
     override fun mouseWheel(event: MouseEvent?) {
-        event?.let {
+        event?.also {
             if (it.count > 0) { // rotated down
-                --particles
+                --particleSizeIndex
             } else { // rotated up
-                ++particles
+                ++particleSizeIndex
             }
         }
     }
