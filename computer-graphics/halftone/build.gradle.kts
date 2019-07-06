@@ -9,11 +9,13 @@ version = "1.0"
 
 repositories {
     mavenCentral()
+    maven(url = "https://clojars.org/repo")
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    compile(group="org.processing", name="core", version="3.3.7")
+    compile("org.clojars.skv:peasycam:201")
+    compile(group = "org.processing", name = "core", version = "3.3.7")
 }
 
 tasks.withType<KotlinCompile> {
