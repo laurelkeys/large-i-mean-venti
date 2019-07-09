@@ -1,6 +1,8 @@
+
 # Topics
 
 > - [clustering](#clustering)
+> - [computer-graphics](#computer-graphics)
 > - [genetic-algorithms](#genetic-algorithms)
 > - [procedural-generation](#procedural-generation)
 > - [simulation](#simulation)
@@ -31,6 +33,16 @@ Image color clustering into k groups using the [k-means](https://en.wikipedia.or
 :-------------------------:|:-------------------------:
 <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian_plot.png" width="500"/>  |  <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_clusters.png" width="500"/>
 
+<!-- -->
+# computer-graphics
+## halftone[/](https://github.com/laurelkeys/large-i-mean-venti/tree/master/computer-graphics/halftone)
+Halftone images made with boxes on a 3D plane using orthographic projection, in both [Processing](https://github.com/laurelkeys/large-i-mean-venti/tree/master/computer-graphics/halftone/processing) and [p5](https://github.com/laurelkeys/large-i-mean-venti/tree/master/computer-graphics/halftone/p5js).
+
+Based on Tim Rodenbröker's [post](https://timrodenbroeker.de/how-to-rasterize-an-image-with-processing/).
+
+### Example usage
+Use the scroll wheel to change the amount of "particles". 
+[Demo](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7) on p5.js Web Editor.
 
 <!-- -->
 # genetic-algorithms
