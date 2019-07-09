@@ -1,10 +1,10 @@
 import peasy.PeasyCam
+import peasy.PeasyWheelHandler
 import processing.core.PApplet
 import processing.core.PImage
 import processing.event.MouseEvent
 
 // ref.: https://timrodenbroeker.de/how-to-rasterize-an-image-with-processing/
-
 class Sketch : PApplet() {
 
     companion object {
@@ -13,16 +13,9 @@ class Sketch : PApplet() {
 
     private val img: PImage by lazy { loadImage("woman.jpg") }
     private val cam: PeasyCam by lazy { PeasyCam(this, width / 1.0) }
-    private var particleSizes = listOf(
-        //1, 2, 3,
-        4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
-        15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-        26, 27, 28, 30, 32, 34, 36, 39, 42, 46,
-        51, 56, 63, 72, 84, 103, 128, 168
-    ) // FIXME generate procedurally
-    private var particleSizeIndex = 4
+    private var particleSize = 10
         set(value) {
-            field = max(0, min(particleSizes.size - 1, value))
+            field = max(1, min(250, value))
         }
 
     override fun settings() {
@@ -31,25 +24,24 @@ class Sketch : PApplet() {
 
     override fun setup() {
         img.resize(width, height)
-        cam.setMinimumDistance(100.0)
-        cam.setMaximumDistance(1500.0)
-        print(particleSizes)
+        cam.setMinimumDistance(700.0)
+        cam.setMaximumDistance(700.0)
+        cam.wheelHandler = PeasyWheelHandler { }
     }
 
     override fun draw() {
-        translate(width / -2f, height / -2f)
         background(0xffffff.rgb)
         fill(0x111111.rgb)
         noStroke()
         ortho()
 
-        val particleSize = particleSizes[particleSizeIndex]
         img.loadPixels()
-        for (y in 0 until img.height step particleSize) {
-            for (x in 0 until img.width step particleSize) {
-                val color = img.pixels[x + y * img.width]
+        for (y in img.height / -2 until img.height / 2 step particleSize) {
+            for (x in img.width / -2 until img.width / 2 step particleSize) {
+                val offset = (x + img.width / 2) + (y + img.height / 2) * img.width
+                val color = img.pixels[offset]
                 val darkness = map(brightness(color), 0f, 255f, 1f, 0f)
-                stackMatrix(x, y, darkness * 100) {
+                stackMatrix(x, y, darkness * 150) {
                     box(particleSize * darkness)
                 }
             }
@@ -59,9 +51,9 @@ class Sketch : PApplet() {
     override fun mouseWheel(event: MouseEvent?) {
         event?.also {
             if (it.count > 0) { // rotated down
-                --particleSizeIndex
+                --particleSize
             } else { // rotated up
-                ++particleSizeIndex
+                ++particleSize
             }
         }
     }
