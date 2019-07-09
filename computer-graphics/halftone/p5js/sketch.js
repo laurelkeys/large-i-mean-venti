@@ -1,6 +1,6 @@
 let cam;
 let img;
-let particles = 50;
+let particles = 50; // scroll to change
 
 function preload() {
   img = loadImage('woman.jpg');
@@ -18,10 +18,10 @@ function setup() {
 }
 
 function mouseWheel(event) {
-  if (event.delta > 0) {
-    --particles;
+  if (event.delta < 0) {
+    if (particles > 1) --particles;
   } else {
-    ++particles;
+    if (particles < 250) ++particles;
   }
 }
 
