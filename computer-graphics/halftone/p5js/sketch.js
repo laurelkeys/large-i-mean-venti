@@ -11,6 +11,8 @@ function setup() {
   setAttributes('antialias', true);
   
   cam = createEasyCam();
+  cam.setDistanceMin(300);
+  cam.setDistanceMax(300);
   
   img.resize(500, 700);
 }
@@ -36,7 +38,8 @@ function draw() {
       let darkness = 1 - (rgb.reduce((acc, x) => acc + x) / 3 / 255);
 
       push();
-      translate(x, y, darkness * 100);
+      let d = darkness <= 0.5 ? (2*darkness)**0.5 : (2*(darkness-0.5))**0.5;
+      translate(x, y, d * 200);
       box(darkness * particleSize);
       pop();
     }
