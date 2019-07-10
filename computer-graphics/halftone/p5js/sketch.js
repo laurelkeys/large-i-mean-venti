@@ -1,6 +1,6 @@
 let cam;
 let img;
-let particles = 50; // scroll to change
+let particles = 50;
 
 function preload() {
   img = loadImage('woman.jpg');
@@ -42,7 +42,7 @@ function draw() {
 
       push();
       let d = darkness <= 0.5 ? (2 * darkness) ** 0.5 : (2 * (darkness - 0.5)) ** 0.5;
-      translate(x, y, d * 200);
+      translate(x, y, (d - 0.5) * 200);
       box(darkness * particleSize);
       pop();
     }

@@ -38,12 +38,14 @@ Image color clustering into k groups using the [k-means](https://en.wikipedia.or
 ## halftone[/](https://github.com/laurelkeys/large-i-mean-venti/tree/master/computer-graphics/halftone)
 Halftone images made with boxes on a 3D plane using orthographic projection, in both [Processing](https://github.com/laurelkeys/large-i-mean-venti/tree/master/computer-graphics/halftone/processing) and [p5](https://github.com/laurelkeys/large-i-mean-venti/tree/master/computer-graphics/halftone/p5js).
 
-Based on Tim Rodenbröker's [post](https://timrodenbroeker.de/how-to-rasterize-an-image-with-processing/).
+Based on this [post](https://timrodenbroeker.de/how-to-rasterize-an-image-with-processing/) by Tim Rodenbröker.
 
 ### Live demo
 [Demo](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7) on the p5.js Web Editor. Use the scroll wheel to change the amount of "particles".  You can also try other images by linking them on the `preload()` function.
 
-[![](https://i.gyazo.com/4a6a17d90a7f8ccd3e70f7e3bde2fee5.gif)](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7)
+<!-- [![](https://i.gyazo.com/4a6a17d90a7f8ccd3e70f7e3bde2fee5.gif)](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7) -->
+
+<a  href="https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7"><img  src="https://i.gyazo.com/4a6a17d90a7f8ccd3e70f7e3bde2fee5.gif"/></a>
 
 <!-- -->
 # genetic-algorithms
@@ -58,7 +60,7 @@ Based on Daniel Shiffman's "The **Nature** of Code", [chapter 9](https://natureo
 ```
 >>> python to_be_or_not_to_be.py
 ```
-[![](https://i.gyazo.com/992ad6d9a4d433988d85b437e5d67032.gif)](https://gyazo.com/992ad6d9a4d433988d85b437e5d67032)
+![](https://i.gyazo.com/992ad6d9a4d433988d85b437e5d67032.gif)
 
 <!-- -->
 # procedural-generation
