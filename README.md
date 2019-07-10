@@ -40,9 +40,10 @@ Halftone images made with boxes on a 3D plane using orthographic projection, in 
 
 Based on Tim Rodenbröker's [post](https://timrodenbroeker.de/how-to-rasterize-an-image-with-processing/).
 
-### Example usage
-Use the scroll wheel to change the amount of "particles". 
-[Demo](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7) on p5.js Web Editor.
+### Live demo
+[Demo](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7) on the p5.js Web Editor. Use the scroll wheel to change the amount of "particles".  You can also try other images by linking them on the `preload()` function.
+
+[![](https://i.gyazo.com/4a6a17d90a7f8ccd3e70f7e3bde2fee5.gif)](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7)
 
 <!-- -->
 # genetic-algorithms
@@ -66,23 +67,24 @@ Based on Daniel Shiffman's "The **Nature** of Code", [chapter 9](https://natureo
 
 3D terrain generation with [Perlin noise](https://en.wikipedia.org/wiki/Perlin_noise), based on a [video](https://www.youtube.com/watch?v=IKB1hWWedMk) by Daniel Shiffman.
 
-Check out a [live demo](https://www.openprocessing.org/sketch/729536) on OpenProcessing.
+### Live demo
+Check out a [live demo](https://www.openprocessing.org/sketch/729536) on OpenProcessing (click on **Open Controls** in the top right to change the terrain height and flight speed).
 
-![](https://gist.githubusercontent.com/laurelkeys/58bc9deb3a913ab65f2de6d41097f4f2/raw/7d9a7f6154c96bf7f43e1362bd81976bb855473a/terrain.png)
+[![](https://gist.githubusercontent.com/laurelkeys/58bc9deb3a913ab65f2de6d41097f4f2/raw/7d9a7f6154c96bf7f43e1362bd81976bb855473a/terrain.png)](https://www.openprocessing.org/sketch/729536)
 
 <!-- -->
 # simulation
 ## boids[/](https://github.com/laurelkeys/large-i-mean-venti/blob/master/simulation/boids)
 Build upon Daniel Shiffman's [Flocking Simulation](https://www.youtube.com/watch?v=mhjuuHl6qHM), based on Craig Reynolds [Boids](http://www.red3d.com/cwr/boids/).
 
-### Example usage
-Change the following controls:
+### Live demo
+[Live demo](https://editor.p5js.org/laurelkeys/full/PLeU1a7F1) on the p5.js Web Editor:
 
-![](https://gist.githubusercontent.com/laurelkeys/58bc9deb3a913ab65f2de6d41097f4f2/raw/397a4ff192ee7c1d98873636bd41be4bbdfbe323/boids_controls.png)
+[![](https://i.gyazo.com/63a62214cf2fba0bab4356d336a3652d.gif)](https://editor.p5js.org/laurelkeys/full/PLeU1a7F1)
 
-[Live demo](https://editor.p5js.org/laurelkeys/full/PLeU1a7F1) on p5.js Web Editor.
+Click on **Open Controls** in the top right to change the boids' behavior:
 
-![](https://i.gyazo.com/63a62214cf2fba0bab4356d336a3652d.gif)
+[![](https://gist.githubusercontent.com/laurelkeys/58bc9deb3a913ab65f2de6d41097f4f2/raw/397a4ff192ee7c1d98873636bd41be4bbdfbe323/boids_controls.png)](https://editor.p5js.org/laurelkeys/sketches/PLeU1a7F1)
 
 <!-- -->
 # swarm-intelligence
