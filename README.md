@@ -45,7 +45,7 @@ Based on this [post](https://timrodenbroeker.de/how-to-rasterize-an-image-with-p
 
 <!-- [![](https://i.gyazo.com/4a6a17d90a7f8ccd3e70f7e3bde2fee5.gif)](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7) -->
 
-<a  href="https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7"><img  src="https://i.gyazo.com/4a6a17d90a7f8ccd3e70f7e3bde2fee5.gif"/></a>
+<a  href="https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7"><img  src="https://media.giphy.com/media/d9Ng621LiwumgM8hKC/giphy.gif"/></a>
 
 <!-- -->
 # genetic-algorithms
