@@ -31,14 +31,8 @@ function draw() {
   drawAxis();
   drawBBox();
   drawPoints();
-
-  // colorPoint(points[backBottomLeft(points)]);
-  // edgeOnHull(points);
-  let [p, q, r] = triangleOnHull(points);
-  drawPoly(p, q, r);
-  colorPoint(p);
-  colorPoint(q);
-  colorPoint(r);
+  
+  giftWrap(points);
 }
 
 function colorPoint(pt) {
@@ -48,6 +42,38 @@ function colorPoint(pt) {
   sphere(1.1*radius, 12, 12);
   pop();
   ambientMaterial(255);
+}
+
+function giftWrap(points) {
+  let [a, b, c] = triangleOnHull(points);
+  
+  let queue = [];
+  enqueue(queue, [a, b], [b, c], [c, a]);
+  
+  let hull = [];
+  hull.push([a, b, c]);
+  drawTriangleOnHull(a, b, c);
+  
+  // while (queue.lenght != 0) {
+  //   let edge = dequeue(queue);
+  // }
+}
+
+function drawTriangleOnHull(a, b, c) {
+  drawPoly(a, b, c);
+  colorPoint(a);
+  colorPoint(b);
+  colorPoint(c);
+}
+
+function enqueue(queue, elem) {
+  queue = [...queue, elem];
+}
+
+function dequeue(queue) {
+  let elem;
+  [elem, ...queue] = queue;
+  return elem;
 }
 
 function triangleOnHull(points) {
