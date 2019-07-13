@@ -16,8 +16,8 @@ function setup() {
   for (let i = 0; i < pointsCount; ++i) {
     points.push(createVector(
       random(-bbox * f, bbox * f),
-      random(-bbox * f, bbox * f),
-      random(-bbox * f, bbox * f)
+      0,
+      0
     ));
   }
 }
@@ -32,30 +32,47 @@ function draw() {
 
   drawPoly(points[0], points[1], points[2]);
 
-  let ptMin = points[backBottomLeft(points)];
+  // colorPoint(points[backBottomLeft(points)]);
+  edgeOnHull(points);
+}
+
+function colorPoint(pt) {
   normalMaterial();
   push();
-  translate(ptMin.x, ptMin.y, ptMin.z);
+  translate(pt.x, pt.y, pt.z);
   sphere(bbox / 50, 12, 12);
   pop();
   ambientMaterial(255);
 }
 
-function backBottomLeft(points) {
-  // z, y, x
-  let iMin = 0;
-  for (let i = 1; i < points.length; ++i) {
-    if (points[i].z < points[iMin].z) {
-      iMin = i; // back most
-    } else if (points[i].z == points[iMin].z) {
-      if (-points[i].y < -points[iMin].y) {
-        iMin = i; // bottom most
-      } else if (points[i].y == points[iMin].y && points[i].x < points[iMin].x) {
-        iMin = i; // left most
-      }
-    }
+function edgeOnHull(points) {
+  let p = points[backBottomLeft(points)]; // backmost point
+  let q = p;
+  for (let r of points) {
+    if (q.z == r.z && q.y == r.y && q.x < r.x)
+      q = r // rightmost point on the same zy-plane as p
+    
+    if (q == p)
+      q = createVector(1, 0, 0).add(p); // virtual reference point to the right of p
   }
-  return iMin;
+  colorPoint(p);
+  colorPoint(q);
+  // TODO pivotOnEdge
+}
+
+function backBottomLeft(points) {
+  let index = 0;
+  
+  for (let i = 1; i < points.length; ++i)
+    if (points[i].z < points[index].z) index = i; // backmost
+  
+    else if (points[i].z == points[index].z)
+      if (-points[i].y < -points[index].y) index = i; // bottommost
+  
+      else if (points[i].y == points[index].y && 
+               points[i].x < points[index].x) index = i; // leftmost
+  
+  return index;
 }
 
 function drawPoly(...vertices) {
@@ -108,11 +125,11 @@ function drawBBox() {
 
 function drawAxis() {
   push();
-  stroke(255, 0, 0); // x (R)
+  stroke(255, 0, 0); // R (x)
   line(0, 0, 0, bbox / 10, 0, 0);
-  stroke(0, 255, 0); // y (G)
+  stroke(0, 255, 0); // G (y)
   line(0, 0, 0, 0, bbox / 10, 0);
-  stroke(0, 0, 255); // z (B)
+  stroke(0, 0, 255); // B (z)
   line(0, 0, 0, 0, 0, bbox / 10);
   pop();
 }
