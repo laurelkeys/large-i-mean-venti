@@ -2,6 +2,7 @@
 
 let cam;
 const bbox = 500;
+const radius = 5;
 const margin = 20;
 const points = [];
 const pointsCount = 50;
@@ -24,25 +25,35 @@ function setup() {
 
 function draw() {
   background(220);
-  // rotateY(0.01 * frameCount);
+  ambientMaterial(255);
+  rotateY(0.01 * frameCount);
 
   drawAxis();
   drawBBox();
   drawPoints();
 
-  drawPoly(points[0], points[1], points[2]);
-
   // colorPoint(points[backBottomLeft(points)]);
-  edgeOnHull(points);
+  // edgeOnHull(points);
+  let [p, q, r] = triangleOnHull(points);
+  drawPoly(p, q, r);
+  colorPoint(p);
+  colorPoint(q);
+  colorPoint(r);
 }
 
 function colorPoint(pt) {
   normalMaterial();
   push();
   translate(pt.x, pt.y, pt.z);
-  sphere(bbox / 50, 12, 12);
+  sphere(1.1*radius, 12, 12);
   pop();
   ambientMaterial(255);
+}
+
+function triangleOnHull(points) {
+  let [p, q] = edgeOnHull(points);
+  r = pivotAroundEdge(p, q, points);
+  return [p, q, r];
 }
 
 function edgeOnHull(points) {
@@ -55,10 +66,13 @@ function edgeOnHull(points) {
     if (q == p)
       q = createVector(1, 0, 0).add(p); // virtual reference point to the right of p
   }
-  colorPoint(p);
-  colorPoint(q);
   q = pivotAroundEdge(p, q, points);
-  colorPoint(q);
+  // colorPoint(p);
+  // colorPoint(q);
+  // stroke(255, 255, 0);
+  // strokeWeight(2);
+  // line(p.x, p.y, p.z, q.x, q.y, q.z);
+  // strokeWeight(1);
   return [p, q]; // edge
 }
 
@@ -128,7 +142,7 @@ function drawPoints() {
     push();
     translate(p.x, p.y, p.z);
     // normalMaterial();
-    sphere(bbox / 50, 12, 12);
+    sphere(radius, 12, 12);
     pop();
   }
 }
