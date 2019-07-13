@@ -16,8 +16,8 @@ function setup() {
   for (let i = 0; i < pointsCount; ++i) {
     points.push(createVector(
       random(-bbox * f, bbox * f),
-      0,
-      0
+      random(-bbox * f, bbox * f),
+      random(-bbox * f, bbox * f)
     ));
   }
 }
@@ -57,7 +57,29 @@ function edgeOnHull(points) {
   }
   colorPoint(p);
   colorPoint(q);
-  // TODO pivotOnEdge
+  q = pivotAroundEdge(p, q, points);
+  colorPoint(q);
+  return [p, q]; // edge
+}
+
+function pivotAroundEdge(p, q, points) {
+  let pt = points[0];
+  let area2 = area(p, q, pt)**2;
+  for (let i = 1; i < points.length; ++i) {
+    let pt_ = points[i];
+    let volume = signedVolume(p, q, pt, pt_);
+    if (volume < 0) {
+      pt = pt_;
+    } else if (volume == 0) {
+      // pt_ is on the same (p, q, pt)-plane
+      area2_ = area(p, q, pt_)**2;
+      if (area2_ > area2) {
+        pt = pt_;
+        area2 = area2_;
+      }
+    }
+  }
+  return pt;
 }
 
 function backBottomLeft(points) {
@@ -73,6 +95,19 @@ function backBottomLeft(points) {
                points[i].x < points[index].x) index = i; // leftmost
   
   return index;
+}
+
+function area(a, b, c) {
+  let b_a = p5.Vector.sub(b, a);
+  let c_a = p5.Vector.sub(c, a);
+  return (1/2) * b_a.cross(c_a).mag();
+}
+
+function signedVolume(a, b, c, d) {
+  let b_a = p5.Vector.sub(b, a);
+  let c_a = p5.Vector.sub(c, a);
+  let d_a = p5.Vector.sub(d, a);
+  return (1/6) * d_a.dot(b_a.cross(c_a));
 }
 
 function drawPoly(...vertices) {
