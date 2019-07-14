@@ -36,7 +36,7 @@ function draw() {
   drawPoints();
   
   if (firstRun) {
-    convexHull = giftWrap(points);
+    convexHull = giftWrap();
     firstRun = false;
   } else {
     for (let t of convexHull) {
@@ -45,17 +45,8 @@ function draw() {
   }
 }
 
-function colorPoint(pt) {
-  normalMaterial();
-  push();
-  translate(pt.x, pt.y, pt.z);
-  sphere(1.1 * radius, 12, 12);
-  pop();
-  ambientMaterial(255);
-}
-
-function giftWrap(points) {
-  let [a, b, c] = triangleOnHull(points);
+function giftWrap() {
+  let [a, b, c] = triangleOnHull();
 
   let queue = [
     [a, b],
@@ -65,22 +56,18 @@ function giftWrap(points) {
 
   let hull = [];
   hull.push([a, b, c]);
-  drawTriangleOnHull(a, b, c);
+  // drawTriangleOnHull(a, b, c);
 
   let visitedEdges = [];
-  let i = 10;
-  // while (queue.length != 0) {
-  while (i > 0) {
-    --i;
-    print(`q=${queue.length}, h=${hull.length}, v=${visitedEdges.length}`);
+  while (queue.length != 0) {
+    let p, q;
     [[p, q], ...queue] = queue;
     if (!visited(visitedEdges, p, q)) {
-      let pt = pivotAroundEdge(p, q, points);
+      let pt = pivotAroundEdge(p, q);
       hull.push([p, q, pt]);
-      drawTriangleOnHull(p, q, pt);
+      // drawTriangleOnHull(p, q, pt);
 
       queue = [...queue,
-        [p, q],
         [q, pt],
         [pt, p]
       ];
@@ -100,21 +87,14 @@ function visited(edges, p, q) {
   return false;
 }
 
-function drawTriangleOnHull(a, b, c) {
-  drawPoly(a, b, c);
-  colorPoint(a);
-  colorPoint(b);
-  colorPoint(c);
-}
-
-function triangleOnHull(points) {
+function triangleOnHull() {
   let [p, q] = edgeOnHull(points);
   r = pivotAroundEdge(p, q, points);
   return [p, q, r];
 }
 
-function edgeOnHull(points) {
-  let p = points[backBottomLeft(points)]; // backmost point
+function edgeOnHull() {
+  let p = points[backBottomLeft()]; // backmost point
   let q = p;
   for (let r of points) {
     if (q.z == r.z && q.y == r.y && q.x < r.x)
@@ -123,11 +103,11 @@ function edgeOnHull(points) {
     if (q == p)
       q = createVector(1, 0, 0).add(p); // virtual reference point to the right of p
   }
-  q = pivotAroundEdge(p, q, points);
+  q = pivotAroundEdge(p, q);
   return [p, q]; // edge
 }
 
-function pivotAroundEdge(p, q, points) {
+function pivotAroundEdge(p, q) {
   let pt = points[0];
   let area2 = area(p, q, pt) ** 2;
   for (let i = 1; i < points.length; ++i) {
@@ -147,7 +127,7 @@ function pivotAroundEdge(p, q, points) {
   return pt;
 }
 
-function backBottomLeft(points) {
+function backBottomLeft() {
   let index = 0;
 
   for (let i = 1; i < points.length; ++i)
@@ -173,6 +153,22 @@ function signedVolume(a, b, c, d) {
   let c_a = p5.Vector.sub(c, a);
   let d_a = p5.Vector.sub(d, a);
   return (1 / 6) * d_a.dot(b_a.cross(c_a));
+}
+
+function colorPoint(pt) {
+  normalMaterial();
+  push();
+  translate(pt.x, pt.y, pt.z);
+  sphere(1.1 * radius, 12, 12);
+  pop();
+  ambientMaterial(255);
+}
+
+function drawTriangleOnHull(a, b, c) {
+  drawPoly(a, b, c);
+  colorPoint(a);
+  colorPoint(b);
+  colorPoint(c);
 }
 
 function drawPoly(...vertices) {
