@@ -4,8 +4,9 @@ let cam;
 const bbox = 500;
 const radius = 5;
 const margin = 20;
-const points = [];
-const pointsCount = 50;
+
+let points = [];
+const pointsCount = 4;
 
 function setup() {
   createCanvas(bbox, bbox, WEBGL);
@@ -29,7 +30,7 @@ let convexHull = [];
 function draw() {
   background(220);
   ambientMaterial(255);
-  rotateY(0.01 * frameCount);
+  // rotateY(0.01 * frameCount);
 
   drawAxis();
   drawBBox();
@@ -46,7 +47,7 @@ function draw() {
 }
 
 function giftWrap() {
-  let [a, b, c] = triangleOnHull();
+  let [a, b, c] = triangleOnHull();  
 
   let queue = [
     [a, b],
@@ -88,8 +89,8 @@ function visited(edges, p, q) {
 }
 
 function triangleOnHull() {
-  let [p, q] = edgeOnHull(points);
-  let r = pivotAroundEdge(p, q, points);
+  let [p, q] = edgeOnHull();
+  let r = pivotAroundEdge(p, q);
   return [p, q, r];
 }
 
@@ -103,8 +104,7 @@ function edgeOnHull() {
     if (q == p)
       q = createVector(1, 0, 0).add(p); // virtual reference point to the right of p
   }
-  q = pivotAroundEdge(p, q);
-  return [p, q]; // edge
+  return [p, pivotAroundEdge(p, q)]; // edge
 }
 
 function pivotAroundEdge(p, q) {
@@ -134,7 +134,7 @@ function backBottomLeft() {
     if (points[i].z < points[index].z) {
       index = i; // backmost
     } else if (points[i].z == points[index].z) {
-      if (-points[i].y < -points[index].y) {
+      if (points[i].y > points[index].y) {
         index = i; // bottommost
       } else if (points[i].y == points[index].y && 
                  points[i].x < points[index].x) {
