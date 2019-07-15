@@ -22,6 +22,13 @@ function setup() {
   }
 }
 
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
 function draw() {
   background(220);
   ambientMaterial(255);
@@ -34,7 +41,10 @@ function draw() {
   drawBBox();
   drawPoints();
   
-  let [a, b, c] = points.slice(0, 4);
+  frameRate(2);
+  let trianglePoints = points.slice(0, 4);
+  shuffleArray(trianglePoints);
+  let [a, b, c] = trianglePoints;
   let centroid = triangleCentroid(a, b, c);
   
   noStroke();
@@ -49,6 +59,7 @@ function draw() {
   let b_a = p5.Vector.sub(b, a); // YELLOW
   let c_a = p5.Vector.sub(c, a); // CYAN
   let normal = p5.Vector.cross(b_a, c_a).setMag(100); // BLACK
+  let _normal = p5.Vector.cross(c_a, b_a).setMag(100); // WHITE
   push();
   translate(a);
   strokeWeight(3);
@@ -58,12 +69,16 @@ function draw() {
   line(0, 0, 0, c_a.x, c_a.y, c_a.z);
   stroke(0); // BLACK
   line(0, 0, 0, normal.x, normal.y, normal.z);
+  stroke(255); // WHITE
+  line(0, 0, 0, _normal.x, _normal.y, _normal.z);
   pop();
   push();
   translate(centroid);
-  stroke(0); // BLACK
   strokeWeight(3);
+  stroke(0); // BLACK
   line(0, 0, 0, normal.x, normal.y, normal.z);  
+  stroke(255); // WHITE
+  line(0, 0, 0, _normal.x, _normal.y, _normal.z);
   pop();
   
   // noLoop();
