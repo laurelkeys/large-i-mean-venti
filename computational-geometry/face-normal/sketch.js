@@ -34,7 +34,44 @@ function draw() {
   drawBBox();
   drawPoints();
   
-  drawPoly(...points);
+  let [a, b, c] = points.slice(0, 4);
+  let centroid = triangleCentroid(a, b, c);
+  
+  noStroke();
+  push();
+  translate(centroid.x, centroid.y, centroid.z);
+  normalMaterial();
+  sphere(radius, 12, 12);
+  pop();
+  
+  drawPoly(a, b, c);
+  
+  let b_a = p5.Vector.sub(b, a); // YELLOW
+  let c_a = p5.Vector.sub(c, a); // CYAN
+  let normal = p5.Vector.cross(b_a, c_a).setMag(100); // BLACK
+  push();
+  translate(a);
+  strokeWeight(3);
+  stroke(255, 255, 0); // YELLOW
+  line(0, 0, 0, b_a.x, b_a.y, b_a.z);
+  stroke(0, 255, 255); // CYAN
+  line(0, 0, 0, c_a.x, c_a.y, c_a.z);
+  stroke(0); // BLACK
+  line(0, 0, 0, normal.x, normal.y, normal.z);
+  pop();
+  push();
+  translate(centroid);
+  stroke(0); // BLACK
+  strokeWeight(3);
+  line(0, 0, 0, normal.x, normal.y, normal.z);  
+  pop();
+  
+  // noLoop();
+
+}
+
+function triangleCentroid(a, b, c) {
+  return [a, b, c].reduce((acc, pt) => acc.add(pt), createVector(0,0,0)).mult(1/3);
 }
 
 function drawPoly(...vertices) {
