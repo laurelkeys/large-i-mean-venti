@@ -1,4 +1,6 @@
 -- ref.: https://github.com/aparrish/rwet/blob/master/ngrams-and-markov-chains.ipynb
+import Data.List
+import Data.Ord
 main = return ()
 
 slice :: Int -> Int -> [a] -> [a]
@@ -16,13 +18,21 @@ split delim (x:xs)
     where
         rest = split delim xs
 
-
 ngrams :: Int -> [a] -> [[a]]
 ngrams n list = [slice i (i+n) list | i <- [0 .. (length list - n)]]
 
 pairs :: String -> [(String, String)]
 pairs text = let wrds = words text in
     [(wrds !! i, wrds !! (i+1)) | i <- [0 .. (length wrds - 2)]]
+
+addOne :: (Eq a) => a -> [(a, Int)] -> [(a, Int)]
+addOne str [] = [(str,1)]
+addOne str ((x,n):xs)
+     | x == str = (x,n+1) : xs
+     | otherwise = (x,n) : addOne str xs
+
+pairCounts :: (Foldable t, Eq a) => t a -> [(a, Int)]
+pairCounts pairs = foldl (\acc x -> addOne x acc) [] pairs
 
 
 -- ngrams 2 "condescendences": 
