@@ -7,7 +7,7 @@ import processing.core.PVector
 class Sketch(
     private val radius: Float,
     private val maxSampleAttempts: Int,
-    private val samplesPerFrame: Int = 1
+    private val samplesPerFrame: Int = 4
 ) : PApplet() {
 
     private val cellScale = radius / sqrt(N.toFloat())
@@ -16,41 +16,37 @@ class Sketch(
     private val grid by lazy { arrayOfNulls<PVector>(rows * columns) }
     private val active = mutableListOf<PVector>()
 
+    companion object {
+        private const val N = 2 // number of dimensions
+        fun run(r: Float, k: Int = 30) = Sketch(r, k).runSketch()
+    }
+
     // grid (rows x columns):
     //   ___    _
     //  |_|_|..|_|      grid cell:
     //  |_|_|..|_|          _
     //  :   :  : :  ==>    |_| (cellScale x cellScale)
     //  |_|_|..|_|
-
-    companion object {
-        private const val N = 2 // number of dimensions
-        fun run(r: Float, k: Int = 30) = Sketch(r, k).runSketch()
-    }
+    private fun inGrid(u: Int, v: Int) = u in 0 until columns && v in 0 until rows
 
     override fun settings() {
-        size(400, 400)
+        size(800, 600)
     }
 
     override fun setup() {
         background(0f)
-        strokeWeight(4f)
         stroke(255)
 
-        val initialSample = PVector(width / 2f, height / 2f) //PVector(random(width), random(height))
+        val initialSample = PVector(random(width), random(height))
         val u = floor(initialSample.x / cellScale)
         val v = floor(initialSample.y / cellScale)
         grid[u + v * columns] = initialSample
-        //grid[gridIndex(initialSample)] = initialSample
         active.add(initialSample)
-        println("active: $active")
-        frameRate = 10f
     }
 
     override fun draw() {
         background(0f)
         strokeWeight(4f)
-        println("${active.size}")
 
         repeat(times = samplesPerFrame) {
             if (active.isNotEmpty()) {
@@ -96,17 +92,17 @@ class Sketch(
         }
 
         stroke(255f)
+        strokeWeight(4f)
         for (sample in grid) {
             if (sample != null) point(sample.x, sample.y)
         }
 
         stroke(255f, 0f, 255f)
+        strokeWeight(6f)
         for (sample in active) {
             point(sample.x, sample.y)
         }
     }
-
-    private fun inGrid(u: Int, v: Int) = u in 0 until columns && v in 0 until rows
 }
 
-fun main() = Sketch.run(r = 60f)
+fun main() = Sketch.run(r = 24f)
