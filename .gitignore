@@ -11,6 +11,13 @@ natural-language/lstm_test.py
 natural-language/seq2seq.py
 natural-language/por.txt
 
+# IntelliJ
+gradle
+gradlew
+gradlew.bat
+.gradle
+.idea
+
 # VS Code
 .vscode
 
