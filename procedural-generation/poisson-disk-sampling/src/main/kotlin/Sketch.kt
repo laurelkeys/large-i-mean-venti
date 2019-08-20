@@ -10,11 +10,18 @@ class Sketch(
     private val samplesPerFrame: Int = 1
 ) : PApplet() {
 
-    private val cellSize = radius / sqrt(N.toFloat())
-    private val rows by lazy { floor(height / cellSize) }
-    private val columns by lazy { floor(width / cellSize) }
-    private val grid by lazy { Array<PVector?>(rows * columns) { null } }
+    private val cellScale = radius / sqrt(N.toFloat())
+    private val rows by lazy { floor(height / cellScale) }
+    private val columns by lazy { floor(width / cellScale) }
+    private val grid by lazy { arrayOfNulls<PVector>(rows * columns) }
     private val active = mutableListOf<PVector>()
+
+    // grid (rows x columns):
+    //   ___    _
+    //  |_|_|..|_|      grid cell:
+    //  |_|_|..|_|          _
+    //  :   :  : :  ==>    |_| (cellScale x cellScale)
+    //  |_|_|..|_|
 
     companion object {
         private const val N = 2 // number of dimensions
@@ -30,13 +37,20 @@ class Sketch(
         strokeWeight(4f)
         stroke(255)
 
-        val initialSample = PVector(random(width), random(height))
-        grid[gridIndex(initialSample)] = initialSample
+        val initialSample = PVector(width / 2f, height / 2f) //PVector(random(width), random(height))
+        val u = floor(initialSample.x / cellScale)
+        val v = floor(initialSample.y / cellScale)
+        grid[u + v * columns] = initialSample
+        //grid[gridIndex(initialSample)] = initialSample
         active.add(initialSample)
+        println("active: $active")
+        frameRate = 10f
     }
 
     override fun draw() {
         background(0f)
+        strokeWeight(4f)
+        println("${active.size}")
 
         repeat(times = samplesPerFrame) {
             if (active.isNotEmpty()) {
@@ -44,48 +58,46 @@ class Sketch(
                 val activeSample = active[randomIndex]
 
                 var foundValidSample = false
-                repeat(times = maxSampleAttempts) {
+                for (attempt in 0 until maxSampleAttempts) {
                     // TODO verify if the generated points are uniformly distributed in the annulus
                     val sample = PVector
                         .random2D()
                         .setMag(random(radius, 2 * radius))
                         .add(activeSample)
 
-                    val col = floor(sample.x / cellSize)
-                    val row = floor(sample.y / cellSize)
-                    if (row in 0 until rows &&
-                        col in 0 until columns &&
-                        grid[col + row * columns] != null // gridIndex(sample)
-                    ) { // check if the generated sample is adequately far from existing samples
+                    // sample's location in the grid
+                    val u = floor(sample.x / cellScale)
+                    val v = floor(sample.y / cellScale)
+
+                    // check if the generated sample is new and adequately far from existing samples
+                    if (inGrid(u, v) && grid[u + v * columns] == null) {
                         var farEnough = true
                         (-1..1).forEach { i ->
                             (-1..1).forEach { j ->
-                                val neighbor = grid[(col + i) + (row + j) * columns]
+                                val neighbor = grid.getOrNull((u + i) + (v + j) * columns)
                                 if (neighbor != null) {
                                     val squaredDistance = PVector.sub(sample, neighbor).magSq()
-                                    farEnough = squaredDistance < radius * radius
+                                    farEnough = squaredDistance >= radius * radius
                                 }
                             }
                         }
                         if (farEnough) {
                             foundValidSample = true
-                            grid[col + row * columns] = sample // gridIndex(sample)
+                            grid[u + v * columns] = sample
                             active.add(sample)
-                            // break
+                            break
                         }
                     }
                 }
 
                 if (!foundValidSample) active.removeAt(randomIndex)
-            } //else noLoop()
+
+            } else noLoop()
         }
 
         stroke(255f)
-        strokeWeight(4f)
         for (sample in grid) {
-            if (sample != null) {
-                point(sample.x, sample.y)
-            }
+            if (sample != null) point(sample.x, sample.y)
         }
 
         stroke(255f, 0f, 255f)
@@ -94,11 +106,7 @@ class Sketch(
         }
     }
 
-    private fun gridIndex(sample: PVector): Int {
-        val x = floor(sample.x / cellSize)
-        val y = floor(sample.y / cellSize)
-        return x + y * columns
-    }
+    private fun inGrid(u: Int, v: Int) = u in 0 until columns && v in 0 until rows
 }
 
-fun main() = Sketch.run(r = 10f)
+fun main() = Sketch.run(r = 60f)
