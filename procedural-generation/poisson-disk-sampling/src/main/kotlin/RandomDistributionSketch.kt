@@ -1,3 +1,4 @@
+import extensions.circle
 import extensions.stackMatrix
 import processing.core.PApplet
 import processing.core.PConstants
@@ -5,11 +6,13 @@ import processing.core.PVector
 
 class RandomDistributionSketch(
     private val radius: Float,
-    private val samplesPerFrame: Int = 4
+    private val samplesPerFrame: Int
 ) : PApplet() {
+    private val offset by lazy { (2 * radius + width) / 6f }
 
     companion object {
-        fun run(radius: Float = 200f) = RandomDistributionSketch(radius).runSketch()
+        fun run(radius: Float = 200f, samplesPerFrame: Int = 4) =
+            RandomDistributionSketch(radius, samplesPerFrame).runSketch()
     }
 
     override fun settings() {
@@ -19,11 +22,13 @@ class RandomDistributionSketch(
     override fun setup() {
         background(0f)
         stroke(255)
-        colorMode(PConstants.HSB)
         ellipseMode(PConstants.CENTER)
         stackMatrix(width / 2f, height / 2f) {
             noFill()
-            ellipse(0f, 0f, 2f * radius, 2f * radius)
+            // left
+            circle(-offset, 0f, radius)
+            // right
+            circle(offset, 0f, radius)
         }
     }
 
@@ -31,17 +36,17 @@ class RandomDistributionSketch(
         strokeWeight(4f)
         stackMatrix(width / 2f, height / 2f) {
             repeat(times = samplesPerFrame) {
-                val sample = PVector
+                // left
+                val leftSample = PVector
                     .random2D()
                     .setMag(random(0f, radius))
-                stroke(
-                    map(sample.mag(), 0f, radius, 0f, 255f),
-                    255f, 255f
-                )
-                point(sample.x, sample.y)
+                stroke(255f, map(leftSample.mag(), 0f, radius, 0f, 255f), 255f)
+                point(leftSample.x - offset, leftSample.y)
+                // right
+                // TODO use the inverse CDF
             }
         }
     }
 }
 
-fun main() = RandomDistributionSketch.run()
+fun main() = RandomDistributionSketch.run(175f)

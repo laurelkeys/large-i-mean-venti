@@ -22,6 +22,10 @@ fun PApplet.transformPixels(transformation: () -> Unit) {
     updatePixels()
 }
 
+fun PApplet.circle(x: Number, y: Number, radius: Number) {
+    this.ellipse(x.toFloat(), y.toFloat(), 2f * radius.toFloat(), 2f * radius.toFloat())
+}
+
 fun PApplet.random(low: Number, high: Number): Float = this.random(low.toFloat(), high.toFloat())
 
 fun PApplet.random(high: Number): Float = this.random(high.toFloat())
