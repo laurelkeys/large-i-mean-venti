@@ -1,13 +1,14 @@
 // ref.: https://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
 
 import extensions.random
+import extensions.stackMatrix
 import processing.core.PApplet
 import processing.core.PVector
 
 class Sketch(
     private val radius: Float,
     private val maxSampleAttempts: Int,
-    private val samplesPerFrame: Int = 4
+    private val samplesPerFrame: Int
 ) : PApplet() {
 
     private val cellScale = radius / sqrt(N.toFloat())
@@ -18,7 +19,7 @@ class Sketch(
 
     companion object {
         private const val N = 2 // number of dimensions
-        fun run(r: Float, k: Int = 30) = Sketch(r, k).runSketch()
+        fun run(r: Float, k: Int = 30, spf: Int = 4) = Sketch(r, k, spf).runSketch()
     }
 
     // grid (rows x columns):
@@ -37,7 +38,7 @@ class Sketch(
         background(0f)
         stroke(255)
 
-        val initialSample = PVector(random(width), random(height))
+        val initialSample = PVector(width / 2f, height / 2f) // PVector(random(width), random(height))
         val u = floor(initialSample.x / cellScale)
         val v = floor(initialSample.y / cellScale)
         grid[u + v * columns] = initialSample
@@ -55,10 +56,9 @@ class Sketch(
 
                 var foundValidSample = false
                 for (attempt in 0 until maxSampleAttempts) {
-                    // TODO verify if the generated points are uniformly distributed in the annulus
                     val sample = PVector
                         .random2D()
-                        .setMag(random(radius, 2 * radius))
+                        .setMag(sqrt(random(radius * radius, (2 * radius) * (2 * radius))))
                         .add(activeSample)
 
                     // sample's location in the grid
