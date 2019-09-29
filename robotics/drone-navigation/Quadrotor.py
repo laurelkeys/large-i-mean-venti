@@ -1,7 +1,8 @@
+# ref.: https://github.com/AtsushiSakai/PythonRobotics/tree/master/AerialNavigation/drone_3d_trajectory_following
+# original author: Daniel Ingram (daniel-s-ingram)
+
 """
 Class for plotting a quadrotor
-
-Author: Daniel Ingram (daniel-s-ingram)
 """
 
 from math import cos, sin

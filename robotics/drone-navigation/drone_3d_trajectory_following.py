@@ -1,7 +1,8 @@
+# ref.: https://github.com/AtsushiSakai/PythonRobotics/tree/master/AerialNavigation/drone_3d_trajectory_following
+# original author: Daniel Ingram (daniel-s-ingram)
+
 """
 Simulate a quadrotor following a 3D trajectory
-
-Author: Daniel Ingram (daniel-s-ingram)
 """
 
 from math import cos, sin
@@ -32,35 +33,23 @@ def quad_sim(x_c, y_c, z_c):
     x_c, y_c, and z_c.
     """
     x_pos = -5; y_pos = -5; z_pos = 5
-
     x_vel    =  y_vel     = z_vel   = 0
     x_acc    =  y_acc     = z_acc   = 0
     roll     =  pitch     = yaw     = 0
     roll_vel =  pitch_vel = yaw_vel = 0
-
     des_yaw = 0
 
-    dt = 0.1
-    t = 0
+    t = 0; dt = 0.1
+    i = 0; irun = 0; n_run = 8
 
     q = Quadrotor(x=x_pos, y=y_pos, z=z_pos, 
                   roll=roll, pitch=pitch, yaw=yaw, 
                   size=1, show_animation=show_animation)
-
-    i = 0
-    n_run = 8
-    irun = 0
     try:
         while True:
             while t <= T:
-                # des_x_pos = calculate(x_c[i], t, value='position')
-                # des_y_pos = calculate(y_c[i], t, value='position')
                 des_z_pos = calculate(z_c[i], t, value='position')
-
-                # des_x_vel = calculate(x_c[i], t, value='velocity')
-                # des_y_vel = calculate(y_c[i], t, value='velocity')
                 des_z_vel = calculate(z_c[i], t, value='velocity')
-
                 des_x_acc = calculate(x_c[i], t, value='acceleration')
                 des_y_acc = calculate(y_c[i], t, value='acceleration')
                 des_z_acc = calculate(z_c[i], t, value='acceleration')
@@ -89,11 +78,12 @@ def quad_sim(x_c, y_c, z_c):
 
                 t += dt
 
-            t = 0
-            i = (i + 1) % 4
             irun += 1
             if irun >= n_run:
                 break
+            else:
+                t = 0
+                i = (i + 1) % 4
     except KeyboardInterrupt:
         pass
 
