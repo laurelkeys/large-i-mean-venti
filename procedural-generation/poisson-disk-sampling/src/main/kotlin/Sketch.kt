@@ -4,6 +4,7 @@ import extensions.circle
 import extensions.random
 import processing.core.PApplet
 import processing.core.PVector
+import processing.event.MouseEvent
 
 class Sketch(
     private val radius: Float,
@@ -20,10 +21,14 @@ class Sketch(
     private val points = mutableListOf<PVector>()
     private val activePoints = mutableListOf<PVector>()
 
+    private var done = false
+
     companion object {
         private const val NO_POINT = -1
         private const val N = 2 // number of dimensions
-        fun run(r: Float, k: Int = 30, spf: Int = 4) = Sketch(r, k, spf).runSketch()
+        fun run(r: Float, k: Int = 30, spf: Int = 4) {
+            Sketch(r, k, spf).runSketch()
+        }
     }
 
     // grid (rows x columns):
@@ -51,7 +56,26 @@ class Sketch(
         activePoints.add(initialSample)
     }
 
+    override fun mousePressed() {
+        if (mouseButton == LEFT) {
+            points.clear()
+            activePoints.clear()
+            for (i in 0 until grid.size) grid[i] = NO_POINT
+            done = false
+
+            val initialSample = PVector(mouseX.toFloat(), mouseY.toFloat())
+            val u = floor(initialSample.x / cellScale)
+            val v = floor(initialSample.y / cellScale)
+            grid[u + v * columns] = 0 // first sample's index
+
+            points.add(initialSample)
+            activePoints.add(initialSample)
+        }
+    }
+
     override fun draw() {
+        if (done) return
+
         background(0f)
         strokeWeight(3f)
 
@@ -82,7 +106,7 @@ class Sketch(
 
             } else {
                 // TODO save the points list here if you want to
-                noLoop() // we are finished
+                done = true // we are finished
             }
         }
 
@@ -102,7 +126,7 @@ class Sketch(
 
     private fun isValid(candidate: PVector, u: Int, v: Int): Boolean {
         if (inGrid(u, v)) {
-            val delta = 1 // searches for neighbors in a (2*delta+1) x (2*delta+1) region around (u, v)
+            val delta = 2 // searches for neighbors in a (2*delta+1) x (2*delta+1) region around (u, v)
             for (t in -delta..delta) {
                 for (s in -delta..delta) {
                     val neighbor = grid.getOrNull((u + s) + (v + t) * columns) ?: continue
@@ -118,4 +142,4 @@ class Sketch(
     }
 }
 
-fun main() = Sketch.run(r = 12f, spf = 6)
+fun main() = Sketch.run(r = 24f, spf = 6)
