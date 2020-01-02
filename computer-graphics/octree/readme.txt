@@ -1,0 +1,1 @@
+this is a port from Brendon Pelfrey's SimpleOctree (https://github.com/brandonpelfrey/SimpleOctree) with some minor changes, made for better understanding octrees
