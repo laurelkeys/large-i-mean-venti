@@ -1,4 +1,6 @@
 # Specific
+*.exe
+
 clustering/*.png
 clustering/i/*
 clustering/o/*
