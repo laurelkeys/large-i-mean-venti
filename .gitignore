@@ -1,6 +1,10 @@
 # Specific
 *.exe
 
+search/regex.*
+
+computer-graphics/3d-modeller/
+
 clustering/*.png
 clustering/i/*
 clustering/o/*
