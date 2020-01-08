@@ -15,7 +15,7 @@ import numpy as np
 from interaction import Interaction
 from primitive import init_primitives, G_OBJ_PLANE
 from node import Sphere, Cube, SnowFigure
-from scene import scene
+from scene import Scene
 
 # ref.: http://aosabook.org/en/500L/a-3d-modeller.html
 
@@ -51,8 +51,8 @@ class Viewer:
 
     def init_opengl(self):
         ''' Initialize the OpenGL settings to render the scene '''
-        self.inverseModelView = numpy.identity(4)
-        self.modelView = numpy.identity(4)
+        self.inverseModelView = np.identity(4)
+        self.modelView = np.identity(4)
 
         glEnable(GL_CULL_FACE)
         glCullFace(GL_BACK)
@@ -111,8 +111,8 @@ class Viewer:
         glPushMatrix()
         glLoadIdentity()
         loc = self.interaction.translation
-        glTranslated(loc[0], loc[1], loc[2])
-        glMultMatrixf(self.interaction.trackballl.matrix)
+        glTranslated(*loc[0:3])
+        glMultMatrixf(self.interaction.trackball.matrix)
 
         # store the inverse of the currebt ModelView
         currentModelView = np.array(glGetFloatv(GL_MODELVIEW_MATRIX))
@@ -143,7 +143,47 @@ class Viewer:
         gluPerspective(70, aspect_ratio, 0.1, 1000.0)
         glTranslated(0, 0, -15)
 
-        
+    def get_ray(self, x, y):
+        ''' Generate a ray beginning at the near plane, 
+            in the direction that the (x, y) coordinates are facing '''
+        self.init_view()
+
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+        # get two points on the line
+        start = np.array(gluUnProject(x, y, 0.001))
+        end   = np.array(gluUnProject(x, y, 0.999))
+
+        # convert the points into a ray
+        direction = end - start
+        direction = direction / np.linalg.norm(direction)
+
+        return start, direction
+
+    def pick(self, x, y):
+        ''' Select and pick an object in the scene '''
+        start, direction = self.get_ray(x, y)
+        self.scene.pick(start, direction, self.modelView)
+
+    def move(self, x, y):
+        ''' Execute a move command on the scene '''
+        start, direction = self.get_ray(x, y)
+        self.scene.move_selected(start, direction, self.inverseModelView)
+
+    def rotate_color(self, forward):
+        ''' Rotate the color of the selected node '''
+        self.scene.rotate_selected_color(forward)
+
+    def scale(self, up):
+        ''' Scale the selected node '''
+        self.scene.scale_selected(up)
+
+    def place(self, shape, x, y):
+        ''' Execute a placement of a new primitive into the scene '''
+        start, direction = self.get_ray(x, y)
+        self.scene.place(shape, start, direction, self.inverseModelView)
+
 
 if __name__ == "__main__":
     viewer = Viewer()

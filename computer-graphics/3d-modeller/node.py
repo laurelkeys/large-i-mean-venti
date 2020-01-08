@@ -4,15 +4,14 @@ from OpenGL.GL import glCallList, glColor3f, glMaterialfv, glMultMatrixf, glPopM
 import random
 import numpy as np
 
-from primitive import G_OBJ_CUBE, G_OBJ_SPHERE
-from aabb import AABB
-from transformation import scaling, translation
 import color
+import transformation
+from aabb import AABB
+from primitive import G_OBJ_CUBE, G_OBJ_SPHERE
 
 
 class Node:
     ''' Base class for scene elements '''
-
     def __init__(self):
         self.color_index = random.randint(color.MIN_COLOR, color.MAX_COLOR)
         self.aabb = AABB([0.0, 0.0, 0.0], [0.5, 0.5, 0.5])
@@ -43,8 +42,38 @@ class Node:
         glPopMatrix()
 
     def render_self(self):
-        raise NotImplementedError(
-            "The Abstract Node Class doesn't define 'render_self'")
+        raise NotImplementedError("The Abstract Node Class doesn't define 'render_self'")
+
+    def pick(self, start, direction, mat):
+        ''' Return whether or not the ray hits the object '''
+        # transform the ModelView matrix by the current translation
+        _mat = np.dot(np.dot(mat, self.translation_matrix), 
+                      np.linalg.inv(self.scaling_matrix))
+        return self.aabb.ray_hit(start, direction, _mat)
+
+    def select(self, select=None):
+       ''' Toggles or sets selected state '''
+       if select is not None:
+           self.selected = select
+       else:
+           self.selected = not self.selected
+
+    def rotate_color(self, forward):
+        self.color_index += 1 if forward else -1
+        if self.color_index > color.MAX_COLOR:
+            self.color_index = color.MIN_COLOR
+        elif self.color_index < color.MIN_COLOR:
+            self.color_index = color.MAX_COLOR
+
+    def scale(self, up):
+        s = 1.1 if up else 0.9
+        self.scaling_matrix = np.dot(self.scaling_matrix, 
+                                     transformation.scaling([s, s, s]))
+        self.aabb.scale(s)
+
+    def translate(self, x, y, z):
+        self.translation_matrix = np.dot(self.translation_matrix, 
+                                         transformation.translation([x, y, z]))
 
 #########################################
 
@@ -93,11 +122,11 @@ class SnowFigure(HierarchicalNode):
         
         self.child_nodes[1].translate(0, 0.1, 0)
         self.child_nodes[1].scaling_matrix = np.dot(self.scaling_matrix, 
-                                                    scaling([0.8, 0.8, 0.8]))
+                                                    transformation.scaling([0.8, 0.8, 0.8]))
         
         self.child_nodes[2].translate(0, 0.75, 0)
         self.child_nodes[2].scaling_matrix = np.dot(self.scaling_matrix, 
-                                                    scaling([0.7, 0.7, 0.7]))
+                                                    transformation.scaling([0.7, 0.7, 0.7]))
         
         for child_node in self.child_nodes:
             child_node.color_index = color.MIN_COLOR
