@@ -17,7 +17,7 @@ BinPackParameters: true
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Attach
 BreakBeforeTernaryOperators: true
-BreakConstructorInitializers: AfterColon
+BreakConstructorInitializers: BeforeComma
 ColumnLimit: 0
 CompactNamespaces: false
 ContinuationIndentWidth: 4
