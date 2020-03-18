@@ -137,22 +137,6 @@ def __sRGB_to_CMY(color):
     return [100 * (1 - _) for _ in [r, g, b]]
 
 ##
-## CMYK
-##
-
-min_CMYK = [  0,   0,   0,   0]
-max_CMYK = [100, 100, 100, 100]
-
-def __CMYK_to_sRGB(color):
-    c, m, y, k = [component / 100 for component in color]
-    return [255 * (1 - min(1, _ * (1 - k) + k)) for _ in [c, m, y]]
-
-def __sRGB_to_CMYK(color):
-    r, g, b = [component / 255 for component in color]
-    k = 1 - max(r, g, b)
-    return [100 * (1 - _ - k) / (1 - k) for _ in [r, g, b]]
-
-##
 ## XYZ
 ##
 
@@ -224,6 +208,39 @@ def __XYZ_to_CIELAB(color, max_XYZ=__d65):
     b = 200 * (fy - fz)
 
     return [L, a, b]
+
+###############################################################################
+###############################################################################
+
+__COLOR_SPACES = ["sRGB", "HSV", "CMY", "XYZ", "CIELAB"]
+
+def __convert(color, init, dest):
+    assert init in __COLOR_SPACES, f"invalid init '{init}'"
+    assert dest in __COLOR_SPACES, f"invalid dest '{dest}'"
+    if init == dest:
+        return color
+
+    if init == "HSV":
+        color = __HSV_to_sRGB(color)
+    elif init == "CMY":
+        color = __CMY_to_sRGB(color)
+    elif init == "XYZ":
+        color = __XYZ_to_sRGB(color)
+    elif init == "CIELAB":
+        color = __XYZ_to_sRGB(__CIELAB_to_XYZ(color))
+    else: # sRGB
+        pass
+
+    if dest == "HSV":
+        return __sRGB_to_HSV(color)
+    elif dest == "CMY":
+        return __sRGB_to_CMY(color)
+    elif dest == "XYZ":
+        return __sRGB_to_XYZ(color)
+    elif dest == "CIELAB":
+        return __XYZ_to_CIELAB(__sRGB_to_XYZ(color))
+    else:
+        assert False
 
 ###############################################################################
 ###############################################################################
