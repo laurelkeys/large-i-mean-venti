@@ -1,6 +1,7 @@
 import os
 import argparse
 
+
 COLOR_SPACE_ALIASES = [
     # sRGB
     "rgb",    # r, g, b  ∈ [0, 255]
@@ -20,8 +21,10 @@ COLOR_SPACE_ALIASES = [
               # a, b     ∈ [-100.0, 100.0]
 ]
 
+
 ###############################################################################
 ###############################################################################
+
 
 # CIE Standard Illuminants' XYZ coordinates (normalized to Y = 100):
 __d50 = [96.42, 100.00,  82.51] # D50, CCT of 5003 K (horizon light)
@@ -59,26 +62,29 @@ __XYZ_to_sRGB1_under_D65 = [
 #   https://www.mathworks.com/help/images/ref/whitepoint.html
 #   http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
+
 ###############################################################################
 ###############################################################################
+
 
 def __linear_RGB_to_sRGB(linear_RGB):
     return [
-        12.92 * v if v <= 0.0031308
-        else 1.055 * (v ** (1 / 2.4)) - 0.055
+        12.92 * v if v <= 0.0031308 else 1.055 * (v ** (1 / 2.4)) - 0.055
         for v in linear_RGB
     ]
 
+
 def __sRGB_to_linear_RGB(sRGB):
     return [
-        V / 12.92 if V <= 0.04045
-        else ((V + 0.055) / 1.055) ** 2.4
+        V / 12.92 if V <= 0.04045 else ((V + 0.055) / 1.055) ** 2.4
         for V in sRGB
     ]
+
 
 def __luminance(linear_RGB):
     r, g, b = linear_RGB
     return [0.212671 * r, 0.715160 * g, 0.072169 * b]
+
 
 def __mat_mul(m3, v3):
     return [
@@ -87,8 +93,10 @@ def __mat_mul(m3, v3):
         m3[2][0] * v3[0] + m3[2][1] * v3[1] + m3[2][2] * v3[2],
     ]
 
+
 ###############################################################################
 ###############################################################################
+
 
 ##
 ## sRGB
@@ -113,8 +121,9 @@ def __HSV_to_sRGB(color):
     m = v - chroma
 
     return [
-        255 * (_ + m) for _ in (
-            [chroma, x, 0] if 0 <= h <= 1
+        255 * (_ + m)
+        for _ in (
+                 [chroma, x, 0] if 0 <= h <= 1
             else [x, chroma, 0] if 1 < h <= 2
             else [0, chroma, x] if 2 < h <= 3
             else [0, x, chroma] if 3 < h <= 4
@@ -149,7 +158,7 @@ max_CMY = [100, 100, 100]
 
 def __CMY_to_sRGB(color):
     c, m, y = [component / 100 for component in color]
-    return [255 * (1 -  _) for _ in [c, m, y]]
+    return [255 * (1 - _) for _ in [c, m, y]]
 
 def __sRGB_to_CMY(color):
     r, g, b = [component / 255 for component in color]
@@ -166,22 +175,16 @@ def __XYZ_to_sRGB(color, max_XYZ=__d65):
 
     x, y, z = [component / white for component, white in zip(color, max_XYZ)]
     if max_XYZ == __d50:
-        r, g, b = __linear_RGB_to_sRGB(
-            __mat_mul(__XYZ_to_sRGB1_under_D50, [x, y, z])
-        )
+        r, g, b = __linear_RGB_to_sRGB(__mat_mul(__XYZ_to_sRGB1_under_D50, [x, y, z]))
     else: # __d65 (default)
-        r, g, b = __linear_RGB_to_sRGB(
-            __mat_mul(__XYZ_to_sRGB1_under_D65, [x, y, z])
-        )
+        r, g, b = __linear_RGB_to_sRGB(__mat_mul(__XYZ_to_sRGB1_under_D65, [x, y, z]))
 
     return [255 * min(max(0, _), 1) for _ in [r, g, b]]
 
 def __sRGB_to_XYZ(color, max_XYZ=__d65):
     assert max_XYZ in [__d50, __d65], f"invalid whitepoint [{', '.join(max_XYZ)}]"
 
-    r, g, b = __sRGB_to_linear_RGB(
-        [component / 255 for component in color]
-    )
+    r, g, b = __sRGB_to_linear_RGB([component / 255 for component in color])
     if max_XYZ == __d50:
         x, y, z = __mat_mul(__sRGB1_to_XYZ_under_D50, [r, g, b])
     else: # __d65 (default)
@@ -196,9 +199,9 @@ def __sRGB_to_XYZ(color, max_XYZ=__d65):
 min_CIELAB = [  0, -100, -100]
 max_CIELAB = [100,  100,  100]
 
-# __kappa * __epsilon == 8
 __epsilon = 216 / 24389 # 0.008856
 __kappa = 24389 / 27 # 903.3
+# __kappa * __epsilon == 8
 
 def __CIELAB_to_XYZ(color, max_XYZ=__d65):
     assert max_XYZ in [__d50, __d65], f"invalid whitepoint [{', '.join(max_XYZ)}]"
@@ -228,8 +231,10 @@ def __XYZ_to_CIELAB(color, max_XYZ=__d65):
 
     return [L, a, b]
 
+
 ###############################################################################
 ###############################################################################
+
 
 def __convert(color, init, dest, max_XYZ):
     if init == dest:
@@ -240,8 +245,12 @@ def __convert(color, init, dest, max_XYZ):
     elif init == "cmy":
         color = __CMY_to_sRGB(color)
     elif init == "xyz":
+        if dest == "cielab":
+            return __XYZ_to_CIELAB(color, max_XYZ)
         color = __XYZ_to_sRGB(color, max_XYZ)
     elif init == "cielab":
+        if dest == "xyz":
+            return __CIELAB_to_XYZ(color, max_XYZ)
         color = __XYZ_to_sRGB(__CIELAB_to_XYZ(color, max_XYZ), max_XYZ)
     else: # sRGB
         pass
@@ -255,15 +264,18 @@ def __convert(color, init, dest, max_XYZ):
     elif dest == "cielab":
         return __XYZ_to_CIELAB(__sRGB_to_XYZ(color, max_XYZ), max_XYZ)
     else: # sRGB
-        return color
+        return [int(component) for component in color]
+
 
 ###############################################################################
 ###############################################################################
+
 
 def validate(color, color_space, max_XYZ):
     if color_space == "rgb":
-        try:    color = map(int, color)
-        except: raise argparse.ArgumentTypeError("rgb color components must be integers")
+        assert all(
+            int(component) == component for component in color
+        ), f"rgb color components must be integers {color}"
         assert all(
             0 <= component <= 255 for component in color
         ), "rgb color components must be in the range [0, 255]"
@@ -281,9 +293,15 @@ def validate(color, color_space, max_XYZ):
 
     elif color_space == "xyz":
         x, y, z = color
-        assert 0 <= x <= max_XYZ[0], f"x component must be in the range [0.0, {max_XYZ[0]:.1f}]"
-        assert 0 <= y <= max_XYZ[1], f"y component must be in the range [0.0, {max_XYZ[1]:.1f}]"
-        assert 0 <= z <= max_XYZ[2], f"z component must be in the range [0.0, {max_XYZ[2]:.1f}]"
+        assert (
+            0 <= x <= max_XYZ[0]
+        ), f"x component must be in the range [0.0, {max_XYZ[0]:.1f}]"
+        assert (
+            0 <= y <= max_XYZ[1]
+        ), f"y component must be in the range [0.0, {max_XYZ[1]:.1f}]"
+        assert (
+            0 <= z <= max_XYZ[2]
+        ), f"z component must be in the range [0.0, {max_XYZ[2]:.1f}]"
 
     elif color_space == "cielab":
         L, a, b = color
@@ -294,13 +312,15 @@ def validate(color, color_space, max_XYZ):
     else:
         assert False, f"invalid color space '{color_space}'"
 
+
 def main(args):
-    validate(args.color, args.from_space, max_XYZ=__d50)
+    from_color = [float(component) for component in args.color]
+    validate(from_color, args.from_space, max_XYZ=__d50)
 
-    from_color = args.color
-    to_color = __convert(from_color, init=args.from_space, dest=args.to_space, max_XYZ=__d50)
-
-    validate(args.color, args.from_space, max_XYZ=__d50)
+    to_color = __convert(
+        from_color, init=args.from_space, dest=args.to_space, max_XYZ=__d50
+    )
+    validate(to_color, args.to_space, max_XYZ=__d50)
 
     def color2str(color, color_space, pts=1):
         if color_space == "rgb":
@@ -309,29 +329,23 @@ def main(args):
 
     print(
         f"{args.from_space.upper()}({color2str(from_color, args.from_space)})",
-        "to", f"{args.to_space.upper()}({color2str(to_color, args.to_space)})"
+        "to",
+        f"{args.to_space.upper()}({color2str(to_color, args.to_space)})",
     )
+
 
 ###############################################################################
 ###############################################################################
+
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Color space converter.")
-    parser.add_argument("from_space",
-                        type=str,
-                        metavar="from",
-                        choices=COLOR_SPACE_ALIASES)
-    parser.add_argument("to_space",
-                        type=str,
-                        metavar="to",
-                        choices=COLOR_SPACE_ALIASES)
-    parser.add_argument("color",
-                        nargs=3,
-                        type=float,
-                        action="store")
-    parser.add_argument("--verbose", "-v", action="store_true",
-                        help="Increase verbosity")
+    parser.add_argument("from_space", type=str, metavar="from", choices=COLOR_SPACE_ALIASES)
+    parser.add_argument("to_space", type=str, metavar="to", choices=COLOR_SPACE_ALIASES)
+    parser.add_argument("color", nargs=3, type=float, action="store")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Increase verbosity")
     return parser
+
 
 if __name__ == "__main__":
     parser = get_parser()
