@@ -25,8 +25,23 @@ def __mat_mul(m3, v3):
         m3[2][0] * v3[0] + m3[2][1] * v3[1] + m3[2][2] * v3[2],
     ]
 
+def __linear_RGB_to_sRGB(linear_RGB):
+    return [12.92 * v if v <= 0.0031308
+            else 1.055 * (v ** (1 / 2.4)) - 0.055
+            for v in linear_RGB]
+
+def __sRGB_to_linear_RGB(sRGB):
+    return [(1 / 12.92) * V if V <= 0.04045
+            else ((V + 0.055) * (1 / 1.055)) ** 2.4
+            for V in sRGB]
+
+def __luminance(linear_RGB):
+    r, g, b = linear_RGB
+    return [0.212671 * r, 0.715160 * g, 0.072169 * b]
+
 # References:
 #   http://paulbourke.net/miscellaneous/colourspace/
+#   https://www.mathworks.com/help/images/ref/whitepoint.html
 #   http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
 #   http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
@@ -151,19 +166,19 @@ def convert_from_cmy_to_cielab(color):
 ## CIEXYZ
 ##
 
-""" CMYK → sRGB """
+""" CIEXYZ → sRGB """
 def convert_from_xyz_to_rgb(color):
     pass
 
-""" CMYK → HSV """
+""" CIEXYZ → HSV """
 def convert_from_xyz_to_hsv(color):
     pass
 
-""" CMYK → CMYK """
+""" CIEXYZ → CMYK """
 def convert_from_xyz_to_cmy(color):
     pass
 
-""" CMYK → CIELAB """
+""" CIEXYZ → CIELAB """
 def convert_from_xyz_to_cielab(color):
     pass
 
@@ -171,19 +186,19 @@ def convert_from_xyz_to_cielab(color):
 ## CIELAB
 ##
 
-""" CMYK → sRGB """
+""" CIELAB → sRGB """
 def convert_from_cielab_to_rgb(color):
     pass
 
-""" CMYK → HSV """
+""" CIELAB → HSV """
 def convert_from_cielab_to_hsv(color):
     pass
 
-""" CMYK → CMYK """
+""" CIELAB → CMYK """
 def convert_from_cielab_to_cmy(color):
     pass
 
-""" CMYK → CIEXYZ """
+""" CIELAB → CIEXYZ """
 def convert_from_cielab_to_xyz(color):
     pass
 
