@@ -1,22 +1,59 @@
 import os
 import argparse
 
-# CIE Standard Illuminant D50:
-__d50 = [0.9642, 1.0000, 0.8251] # CCT of 5003 K (also known as horizon light)
 
-# sRGB to XYZ matrix [M], with D50 as the reference white:
-__sRGB_to_XYZ = [
+###############################################################################
+###############################################################################
+
+# CIE Standard Illuminants' XYZ coordinates (normalized to Y = 100):
+__d50 = [96.42, 100.00,  82.51] # D50, CCT of 5003 K (horizon light)
+__d65 = [95.04, 100.00, 108.88] # D65, CCT of 6504 K (noon daylight)
+
+# NOTE the following matrices assume:
+#  - XYZ values in the range [0, 100]
+#  - sRGB1 values in the range [0, 1]
+
+# sRGB1 to XYZ matrix [M], with CIE 1931 2° whitepoint reference values:
+__sRGB1_to_XYZ_under_D50 = [
     [0.4360747, 0.3850649, 0.1430804],
     [0.2225045, 0.7168786, 0.0606169],
     [0.0139322, 0.0971045, 0.7141733],
 ]
+__sRGB1_to_XYZ_under_D65 = [
+    [0.4124564, 0.3575761, 0.1804375],
+    [0.2126729, 0.7151522, 0.0721750],
+    [0.0193339, 0.1191920, 0.9503041],
+]
 
-# XYZ to sRGB matrix [M]^-1, with D50 as the reference white:
-__XYZ_to_sRGB = [
+# XYZ to sRGB1 matrix [M]^-1, with CIE 1931 2° whitepoint reference values:
+__XYZ_to_sRGB1_under_D50 = [
     [ 3.1338561, -1.6168667, -0.4906146],
     [-0.9787684,  1.9161415,  0.0334540],
     [ 0.0719453, -0.2289914,  1.4052427],
 ]
+__XYZ_to_sRGB1_under_D65 = [
+    [ 3.2404542, -1.5371385, -0.4985314],
+    [-0.9692660,  1.8760108,  0.0415560],
+    [ 0.0556434, -0.2040259,  1.0572252],
+]
+
+def __linear_RGB_to_sRGB(linear_RGB):
+    return [
+        12.92 * v if v <= 0.0031308
+        else 1.055 * (v ** (1 / 2.4)) - 0.055
+        for v in linear_RGB
+    ]
+
+def __sRGB_to_linear_RGB(sRGB):
+    return [
+        V / 12.92 if V <= 0.04045
+        else ((V + 0.055) / 1.055) ** 2.4
+        for V in sRGB
+    ]
+
+def __luminance(linear_RGB):
+    r, g, b = linear_RGB
+    return [0.212671 * r, 0.715160 * g, 0.072169 * b]
 
 def __mat_mul(m3, v3):
     return [
@@ -25,184 +62,170 @@ def __mat_mul(m3, v3):
         m3[2][0] * v3[0] + m3[2][1] * v3[1] + m3[2][2] * v3[2],
     ]
 
-def __linear_RGB_to_sRGB(linear_RGB):
-    return [12.92 * v if v <= 0.0031308
-            else 1.055 * (v ** (1 / 2.4)) - 0.055
-            for v in linear_RGB]
-
-def __sRGB_to_linear_RGB(sRGB):
-    return [(1 / 12.92) * V if V <= 0.04045
-            else ((V + 0.055) * (1 / 1.055)) ** 2.4
-            for V in sRGB]
-
-def __luminance(linear_RGB):
-    r, g, b = linear_RGB
-    return [0.212671 * r, 0.715160 * g, 0.072169 * b]
-
-# References:
-#   http://paulbourke.net/miscellaneous/colourspace/
-#   https://www.mathworks.com/help/images/ref/whitepoint.html
-#   http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
-#   http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-
-COLOR_SPACES = [
-    # sRGB
-    "rgb",    # r,g,b ∈ [0, 255]
-
-    # HSV
-    "hsv",    # h     ∈ [0.0, 360.0)
-              # s,v   ∈ [0.0, 1.0]
-
-    # CMYK
-    "cmy",    # c,m,y ∈ [0.0, 100.0]
-
-    # CIEXYZ
-    "xyz",    # x,y,z ∈ [0.0, 1.0]
-
-    # CIELAB
-    "cielab"  # L*,a*,b*
-]
+###############################################################################
+###############################################################################
 
 ##
 ## sRGB
 ##
 
-""" sRGB → HSV """
-def convert_from_rgb_to_hsv(color):
-    r, g, b = color
-
-    theta_min = min(r, g, b)
-    theta_max = max(r, g, b)
-    delta = theta_max - theta_min
-    h = 0
-    v = theta_max
-    s = delta / theta_max if theta_max > 0 else 0
-    if delta > 0:
-        if theta_max == r and theta_max != g:
-            h += (g - b) / delta
-        if theta_max == g and theta_max != b:
-            h += (2 + (b - r) / delta)
-        if theta_max == b and theta_max != r:
-            h += (4 + (r - g) / delta)
-        h *= 60
-
-    return [h, s, v]
-
-""" sRGB → CMYK """
-def convert_from_rgb_to_cmy(color):
-    return [100 * (255 - component) / 255 for component in color]
-
-""" sRGB → CIEXYZ """
-def convert_from_rgb_to_xyz(color):
-    r, g, b = [
-        V / 12.92 if V <= 0.04045
-        else ((V + 0.055) / 1.055) ** 2.4
-        for V in [(component / 255) for component in color]
-    ]
-    return __mat_mul(__sRGB_to_XYZ, [r, g, b])
-
-""" sRGB → CIELAB """
-def convert_from_rgb_to_cielab(color):
-    return convert_from_xyz_to_cielab(convert_from_rgb_to_xyz(color))
+min_sRGB = [  0,   0,   0]
+max_sRGB = [255, 255, 255]
 
 ##
 ## HSV
 ##
 
-""" HSV → sRGB """
-def convert_from_hsv_to_rgb(color):
+min_HSV = [  0,   0,   0]
+max_HSV = [360, 100, 100]
+
+def __HSV_to_sRGB(color):
     h, s, v = color
+    h /= 60 # [0, 360] -> [0, 5]
+    s /= 100
+    v /= 100
+    hi = int(h) % 6 # [0, 5] -> {0, 1, 2, 3, 4, 5}
 
-    if h < 120:
-        r = (120 - h) / 60
-        g = h / 60
-        b = 0
-    elif h < 240:
-        r = 0
-        g = (240 - h) / 60
-        b = (h - 120) / 60
-    else:
-        r = (h - 240) / 60
-        g = 0
-        b = (360 - h) / 60
+    f = h - int(h)
+    p = 255 * v * (1 - s)
+    q = 255 * v * (1 - (s * f))
+    t = 255 * v * (1 - (s * (1 - f)))
+    v *= 255
 
-    r = (1 - s + s * min(r, 1)) * v
-    g = (1 - s + s * min(g, 1)) * v
-    b = (1 - s + s * min(b, 1)) * v
+    if hi == 0:
+        return [v, t, p]
+    elif hi == 1:
+        return [q, v, p]
+    elif hi == 2:
+        return [p, v, t]
+    elif hi == 3:
+        return [p, q, v]
+    elif hi == 4:
+        return [t, p, v]
+    else: # == 5
+        return [v, p, q]
 
-""" HSV → CMYK """
-def convert_from_hsv_to_cmy(color):
-    pass
+def __sRGB_to_HSV(color):
+    r, g, b = [component / 255 for component in color]
 
-""" HSV → CIEXYZ """
-def convert_from_hsv_to_xyz(color):
-    pass
+    v = max(r, g, b)
+    chroma = v - min(r, g, b)
+    s = 0 if v == 0 else chroma / v
+    h = (
+        0 if chroma == 0
+        else 60 * (    (g - b) / chroma) if v == r
+        else 60 * (2 + (b - r) / chroma) if v == g
+        else 60 * (4 + (r - g) / chroma) #  v == b
+    )
 
-""" HSV → CIELAB """
-def convert_from_hsv_to_cielab(color):
-    pass
+    assert 0 <= h < 360
+    return [h, 100 * s, 100 * v]
+
+##
+## CMY
+##
+
+min_CMY = [  0,   0,   0]
+max_CMY = [100, 100, 100]
+
+def __CMY_to_sRGB(color):
+    c, m, y = [component / 100 for component in color]
+    return [255 * (1 -  _) for _ in [c, m, y]]
+
+def __sRGB_to_CMY(color):
+    r, g, b = [component / 255 for component in color]
+    return [100 * (1 - _) for _ in [r, g, b]]
 
 ##
 ## CMYK
 ##
 
-""" CMYK → sRGB """
-def convert_from_cmy_to_rgb(color):
-    pass
+min_CMYK = [  0,   0,   0,   0]
+max_CMYK = [100, 100, 100, 100]
 
-""" CMYK → HSV """
-def convert_from_cmy_to_hsv(color):
-    pass
+def __CMYK_to_sRGB(color):
+    c, m, y, k = [component / 100 for component in color]
+    return [255 * (1 - min(1, _ * (1 - k) + k)) for _ in [c, m, y]]
 
-""" CMYK → CIEXYZ """
-def convert_from_cmy_to_xyz(color):
-    pass
-
-""" CMYK → CIELAB """
-def convert_from_cmy_to_cielab(color):
-    pass
+def __sRGB_to_CMYK(color):
+    r, g, b = [component / 255 for component in color]
+    k = 1 - max(r, g, b)
+    return [100 * (1 - _ - k) / (1 - k) for _ in [r, g, b]]
 
 ##
-## CIEXYZ
+## XYZ
 ##
 
-""" CIEXYZ → sRGB """
-def convert_from_xyz_to_rgb(color):
-    pass
+min_XYZ = [0, 0, 0]
 
-""" CIEXYZ → HSV """
-def convert_from_xyz_to_hsv(color):
-    pass
+def __XYZ_to_sRGB(color, max_XYZ=__d65):
+    assert max_XYZ in [__d50, __d65], f"invalid whitepoint [{', '.join(max_XYZ)}]"
 
-""" CIEXYZ → CMYK """
-def convert_from_xyz_to_cmy(color):
-    pass
+    x, y, z = [component / white for component, white in zip(color, max_XYZ)]
+    if max_XYZ == __d50:
+        r, g, b = __linear_RGB_to_sRGB(
+            __mat_mul(__XYZ_to_sRGB1_under_D50, [x, y, z])
+        )
+    else: # __d65 (default)
+        r, g, b = __linear_RGB_to_sRGB(
+            __mat_mul(__XYZ_to_sRGB1_under_D65, [x, y, z])
+        )
 
-""" CIEXYZ → CIELAB """
-def convert_from_xyz_to_cielab(color):
-    pass
+    return [255 * min(max(0, _), 1) for _ in [r, g, b]]
+
+def __sRGB_to_XYZ(color, max_XYZ=__d65):
+    assert max_XYZ in [__d50, __d65], f"invalid whitepoint [{', '.join(max_XYZ)}]"
+
+    r, g, b = __sRGB_to_linear_RGB(
+        [component / 255 for component in color]
+    )
+    if max_XYZ == __d50:
+        x, y, z = __mat_mul(__sRGB1_to_XYZ_under_D50, [r, g, b])
+    else: # __d65 (default)
+        x, y, z = __mat_mul(__sRGB1_to_XYZ_under_D65, [r, g, b])
+
+    return [white * _ for _, white in zip([x, y, z], max_XYZ)]
 
 ##
 ## CIELAB
 ##
 
-""" CIELAB → sRGB """
-def convert_from_cielab_to_rgb(color):
-    pass
+min_CIELAB = [  0, -100, -100]
+max_CIELAB = [100,  100,  100]
 
-""" CIELAB → HSV """
-def convert_from_cielab_to_hsv(color):
-    pass
+# __kappa * __epsilon == 8
+__epsilon = 216 / 24389 # 0.008856
+__kappa = 24389 / 27 # 903.3
 
-""" CIELAB → CMYK """
-def convert_from_cielab_to_cmy(color):
-    pass
+def __CIELAB_to_XYZ(color, max_XYZ=__d65):
+    assert max_XYZ in [__d50, __d65], f"invalid whitepoint [{', '.join(max_XYZ)}]"
 
-""" CIELAB → CIEXYZ """
-def convert_from_cielab_to_xyz(color):
-    pass
+    L, a, b = color
+    fy = (L + 16) / 116
+    fx = a / 500 + fy
+    fz = fy - b / 200
 
+    x = fx ** 3 if fx ** 3 > __epsilon else (116 * fx - 16) / __kappa
+    y = ((L + 16) / 116) ** 3 if L > 8 else L / __kappa
+    z = fz ** 3 if fz ** 3 > __epsilon else (116 * fz - 16) / __kappa
 
+    return [white * _ for _, white in zip([x, y, z], max_XYZ)]
+
+def __XYZ_to_CIELAB(color, max_XYZ=__d65):
+    assert max_XYZ in [__d50, __d65], f"invalid whitepoint [{', '.join(max_XYZ)}]"
+
+    x, y, z = [component / white for component, white in zip(color, max_XYZ)]
+    fx = x ** (1 / 3) if x > __epsilon else (__kappa * x + 16) / 116
+    fy = y ** (1 / 3) if y > __epsilon else (__kappa * y + 16) / 116
+    fz = z ** (1 / 3) if z > __epsilon else (__kappa * z + 16) / 116
+
+    L = 116 * fy - 16
+    a = 500 * (fx - fy)
+    b = 200 * (fy - fz)
+
+    return [L, a, b]
+
+###############################################################################
 ###############################################################################
 
 def validate(color, from_space):
@@ -263,17 +286,39 @@ def main(args):
     )
 
 ###############################################################################
+###############################################################################
+
+COLOR_SPACE_ALIASES = [
+    # sRGB
+    "rgb",    # r,g,b   ∈ [0, 255]
+
+    # HSV
+    "hsv",    # h       ∈ [0.0, 360.0)
+              # s,v     ∈ [0.0, 1.0]
+
+    # CMY
+    "cmy",    # c,m,y   ∈ [0.0, 100.0]
+
+    # CMYK
+    "cmyk",   # c,m,y,k ∈ [0.0, 100.0]
+
+    # XYZ
+    "xyz",    # x,y,z   ∈ [0.0, 1.0]
+
+    # CIELAB
+    "cielab"  # L*,a*,b*
+]
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Color space converter.")
     parser.add_argument("from_space",
                         type=str,
                         metavar="from",
-                        choices=COLOR_SPACES)
+                        choices=COLOR_SPACE_ALIASES)
     parser.add_argument("to_space",
                         type=str,
                         metavar="to",
-                        choices=COLOR_SPACES)
+                        choices=COLOR_SPACE_ALIASES)
     parser.add_argument("color",
                         nargs=3,
                         type=float,
@@ -287,3 +332,8 @@ if __name__ == "__main__":
     args = get_parser().parse_args()
 
     main(args)
+
+# References:
+#   https://www.mathworks.com/help/images/ref/whitepoint.html
+#   http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
+#   http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
