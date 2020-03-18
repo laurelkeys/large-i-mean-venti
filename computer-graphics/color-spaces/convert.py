@@ -1,6 +1,24 @@
 import os
 import argparse
 
+COLOR_SPACE_ALIASES = [
+    # sRGB
+    "rgb",    # r, g, b  ∈ [0, 255]
+
+    # HSV
+    "hsv",    # h        ∈ [0.0, 360.0)
+              # s, v     ∈ [0.0, 1.0]
+
+    # CMY
+    "cmy",    # c, m, y  ∈ [0.0, 100.0]
+
+    # XYZ
+    "xyz",    # x, y, z  ∈ [0.0, 100.0]
+
+    # CIELAB
+    "cielab"  # L        ∈ [0.0, 100.0]
+              # a, b     ∈ [-100.0, 100.0]
+]
 
 ###############################################################################
 ###############################################################################
@@ -36,6 +54,13 @@ __XYZ_to_sRGB1_under_D65 = [
     [-0.9692660,  1.8760108,  0.0415560],
     [ 0.0556434, -0.2040259,  1.0572252],
 ]
+
+# References:
+#   https://www.mathworks.com/help/images/ref/whitepoint.html
+#   http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+
+###############################################################################
+###############################################################################
 
 def __linear_RGB_to_sRGB(linear_RGB):
     return [
@@ -76,34 +101,28 @@ max_sRGB = [255, 255, 255]
 ## HSV
 ##
 
-min_HSV = [  0,   0,   0]
-max_HSV = [360, 100, 100]
+min_HSV = [  0, 0, 0]
+max_HSV = [360, 1, 1]
 
 def __HSV_to_sRGB(color):
     h, s, v = color
-    h /= 60 # [0, 360] -> [0, 5]
-    s /= 100
-    v /= 100
-    hi = int(h) % 6 # [0, 5] -> {0, 1, 2, 3, 4, 5}
 
-    f = h - int(h)
-    p = 255 * v * (1 - s)
-    q = 255 * v * (1 - (s * f))
-    t = 255 * v * (1 - (s * (1 - f)))
-    v *= 255
+    chroma = v * s
+    h /= 60 # [0, 360] -> [0, 6]
+    x = chroma * (1 - abs((h % 2) - 1))
+    m = v - chroma
 
-    if hi == 0:
-        return [v, t, p]
-    elif hi == 1:
-        return [q, v, p]
-    elif hi == 2:
-        return [p, v, t]
-    elif hi == 3:
-        return [p, q, v]
-    elif hi == 4:
-        return [t, p, v]
-    else: # == 5
-        return [v, p, q]
+    return [
+        255 * (_ + m) for _ in (
+            [chroma, x, 0] if 0 <= h <= 1
+            else [x, chroma, 0] if 1 < h <= 2
+            else [0, chroma, x] if 2 < h <= 3
+            else [0, x, chroma] if 3 < h <= 4
+            else [x, 0, chroma] if 4 < h <= 5
+            else [chroma, 0, x] if 5 < h <= 6
+            else [0, 0, 0]
+        )
+    ]
 
 def __sRGB_to_HSV(color):
     r, g, b = [component / 255 for component in color]
@@ -119,7 +138,7 @@ def __sRGB_to_HSV(color):
     )
 
     assert 0 <= h < 360
-    return [h, 100 * s, 100 * v]
+    return [h, s, v]
 
 ##
 ## CMY
@@ -212,119 +231,89 @@ def __XYZ_to_CIELAB(color, max_XYZ=__d65):
 ###############################################################################
 ###############################################################################
 
-__COLOR_SPACES = ["sRGB", "HSV", "CMY", "XYZ", "CIELAB"]
-
-def __convert(color, init, dest):
-    assert init in __COLOR_SPACES, f"invalid init '{init}'"
-    assert dest in __COLOR_SPACES, f"invalid dest '{dest}'"
+def __convert(color, init, dest, max_XYZ):
     if init == dest:
         return color
 
-    if init == "HSV":
+    if init == "hsv":
         color = __HSV_to_sRGB(color)
-    elif init == "CMY":
+    elif init == "cmy":
         color = __CMY_to_sRGB(color)
-    elif init == "XYZ":
-        color = __XYZ_to_sRGB(color)
-    elif init == "CIELAB":
-        color = __XYZ_to_sRGB(__CIELAB_to_XYZ(color))
+    elif init == "xyz":
+        color = __XYZ_to_sRGB(color, max_XYZ)
+    elif init == "cielab":
+        color = __XYZ_to_sRGB(__CIELAB_to_XYZ(color, max_XYZ), max_XYZ)
     else: # sRGB
         pass
 
-    if dest == "HSV":
+    if dest == "hsv":
         return __sRGB_to_HSV(color)
-    elif dest == "CMY":
+    elif dest == "cmy":
         return __sRGB_to_CMY(color)
-    elif dest == "XYZ":
-        return __sRGB_to_XYZ(color)
-    elif dest == "CIELAB":
-        return __XYZ_to_CIELAB(__sRGB_to_XYZ(color))
-    else:
-        assert False
-
-###############################################################################
-###############################################################################
-
-def validate(color, from_space):
-    # ref.: https://stackoverflow.com/questions/8107713/using-argparse-argumenterror-in-python
-    if from_space == "rgb":
-        try:
-            color = map(int, color)
-        except:
-            raise argparse.ArgumentTypeError("rgb color components must be integers")
-        assert all(0 <= component <= 255 for component in color), (
-            "sRGB color components (r, g, b) must be in the range [0, 255]"
-        )
-    elif from_space == "hsv":
-        h, s, v = color
-        assert 0.0 <= h < 360.0, (
-            "HSV color component h must be in the range [0.0, 360.0)"
-        )
-        assert 0.0 <= s <= 1.0, (
-            "HSV color component s must be in the range [0.0, 1.0]"
-        )
-        assert 0.0 <= v <= 1.0, (
-            "HSV color component v must be in the range [0.0, 1.0]"
-        )
-    elif from_space == "cmy":
-        assert all(0.0 <= component <= 100.0 for component in color), (
-            "CMYK color components (c, m, y) must be in the range [0.0, 100.0]"
-        )
-    elif from_space == "xyz":
-        # CIEXYZ color components (x, y, z)
-        pass
-    else: # cielab
-        # CIELAB color components (L*, a*, b*)
-        pass
-    return color
-
-def convert(color, from_space, to_space):
-    if from_space == to_space:
+    elif dest == "xyz":
+        return __sRGB_to_XYZ(color, max_XYZ)
+    elif dest == "cielab":
+        return __XYZ_to_CIELAB(__sRGB_to_XYZ(color, max_XYZ), max_XYZ)
+    else: # sRGB
         return color
 
-    # if from_space == "rgb":
-    #     return convert_from_rgb(to_space, color)
-    # elif from_space == "hsv":
-    #     return convert_from_hsv(to_space, color)
-    # elif from_space == "cmy":
-    #     return convert_from_cmy(to_space, color)
-    # elif from_space == "xyz":
-    #     return convert_from_xyz(to_space, color)
-    # else: # cielab
-    #     return convert_from_cielab(to_space, color)
+###############################################################################
+###############################################################################
+
+def validate(color, color_space, max_XYZ):
+    if color_space == "rgb":
+        try:    color = map(int, color)
+        except: raise argparse.ArgumentTypeError("rgb color components must be integers")
+        assert all(
+            0 <= component <= 255 for component in color
+        ), "rgb color components must be in the range [0, 255]"
+
+    elif color_space == "hsv":
+        h, s, v = color
+        assert 0.0 <= h < 360.0, "hue component must be in the range [0.0, 360.0)"
+        assert 0.0 <= s <= 1.0, "saturation component must be in the range [0.0, 1.0]"
+        assert 0.0 <= v <= 1.0, "value component must be in the range [0.0, 1.0]"
+
+    elif color_space == "cmy":
+        assert all(
+            0.0 <= component <= 100.0 for component in color
+        ), "cmy color components must be in the range [0.0, 100.0]"
+
+    elif color_space == "xyz":
+        x, y, z = color
+        assert 0 <= x <= max_XYZ[0], f"x component must be in the range [0.0, {max_XYZ[0]:.1f}]"
+        assert 0 <= y <= max_XYZ[1], f"y component must be in the range [0.0, {max_XYZ[1]:.1f}]"
+        assert 0 <= z <= max_XYZ[2], f"z component must be in the range [0.0, {max_XYZ[2]:.1f}]"
+
+    elif color_space == "cielab":
+        L, a, b = color
+        assert 0.0 <= L <= 100.0, f"L component must be in the range [0.0, 100.0"
+        assert -100.0 <= a <= 100.0, f"a component must be in the range [-100.0, 100.0]"
+        assert -100.0 <= b <= 100.0, f"b component must be in the range [-100.0, 100.0]"
+
+    else:
+        assert False, f"invalid color space '{color_space}'"
 
 def main(args):
-    from_color = validate(args.color, args.from_space)
-    to_color = convert(from_color, args.from_space, args.to_space)
+    validate(args.color, args.from_space, max_XYZ=__d50)
+
+    from_color = args.color
+    to_color = __convert(from_color, init=args.from_space, dest=args.to_space, max_XYZ=__d50)
+
+    validate(args.color, args.from_space, max_XYZ=__d50)
+
+    def color2str(color, color_space, pts=1):
+        if color_space == "rgb":
+            return ", ".join([f"{_:.0f}" for _ in from_color])
+        return ", ".join([f"{_:.{pts}f}" for _ in from_color])
+
     print(
-        f"{args.from_space.upper()}(" + ", ".join(map(str, from_color)) + ")",
-        "to",
-        f"{args.to_space.upper()}(" + ", ".join(map(str, to_color)) + ")"
+        f"{args.from_space.upper()}({color2str(from_color, args.from_space)})",
+        "to", f"{args.to_space.upper()}({color2str(to_color, args.to_space)})"
     )
 
 ###############################################################################
 ###############################################################################
-
-COLOR_SPACE_ALIASES = [
-    # sRGB
-    "rgb",    # r,g,b   ∈ [0, 255]
-
-    # HSV
-    "hsv",    # h       ∈ [0.0, 360.0)
-              # s,v     ∈ [0.0, 1.0]
-
-    # CMY
-    "cmy",    # c,m,y   ∈ [0.0, 100.0]
-
-    # CMYK
-    "cmyk",   # c,m,y,k ∈ [0.0, 100.0]
-
-    # XYZ
-    "xyz",    # x,y,z   ∈ [0.0, 1.0]
-
-    # CIELAB
-    "cielab"  # L*,a*,b*
-]
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Color space converter.")
@@ -349,8 +338,3 @@ if __name__ == "__main__":
     args = get_parser().parse_args()
 
     main(args)
-
-# References:
-#   https://www.mathworks.com/help/images/ref/whitepoint.html
-#   http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
-#   http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
