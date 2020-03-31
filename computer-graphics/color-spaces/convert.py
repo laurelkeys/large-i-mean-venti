@@ -2,7 +2,7 @@ import os
 import argparse
 
 
-COLOR_SPACE_ALIASES = [
+COLOR_SPACES = [
     # sRGB
     "rgb",    # r, g, b  ∈ [0, 255]
 
@@ -29,6 +29,22 @@ COLOR_SPACE_ALIASES = [
 # CIE Standard Illuminants' XYZ coordinates (normalized to Y = 100):
 __d50 = [96.42, 100.00,  82.51] # D50, CCT of 5003 K (horizon light)
 __d65 = [95.04, 100.00, 108.88] # D65, CCT of 6504 K (noon daylight)
+
+# NOTE the following matrices assume:
+#  - XYZ scaling method for chromatic adaptation
+#  - the reference illuminant tristimulus defined above
+
+__chromatic_adaptation_from_D50_to_D65 = [
+    [0.9857398, 0.0000000, 0.0000000],
+    [0.0000000, 1.0000000, 0.0000000],
+    [0.0000000, 0.0000000, 1.3194581],
+]
+
+__chromatic_adaptation_from_D65_to_D50 = [
+    [1.0144665, 0.0000000, 0.0000000],
+    [0.0000000, 1.0000000, 0.0000000],
+    [0.0000000, 0.0000000, 0.7578869],
+]
 
 # NOTE the following matrices assume:
 #  - XYZ values in the range [0, 100]
@@ -59,8 +75,10 @@ __XYZ_to_sRGB1_under_D65 = [
 ]
 
 # References:
-#   https://www.mathworks.com/help/images/ref/whitepoint.html
 #   http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+#   http://www.brucelindbloom.com/index.html?Eqn_ChromAdapt.html
+#   https://www.mathworks.com/help/images/ref/whitepoint.html
+#   https://www.colour-science.org/
 
 
 ###############################################################################
@@ -84,6 +102,24 @@ def __sRGB_to_linear_RGB(sRGB):
 def __luminance(linear_RGB):
     r, g, b = linear_RGB
     return [0.212671 * r, 0.715160 * g, 0.072169 * b]
+
+
+def __CCT_to_chromaticity(temperature_K):
+    # convert from the correlated color temperature (CCT) of a
+    # CIE D-illuminant to the chromaticity of that D-illuminant
+    T = temperature_K
+
+    if 4000 <= T <= 7000:
+        x_D = -4.6070e9 / T**3 + 2.9678e6 / T**2 + 0.09911e3 / T + 0.244063
+    elif 7000 < T <= 25000:
+        x_D = -2.0064e9 / T**3 + 1.9018e6 / T**2 + 0.24748e3 / T + 0.237040
+    else:
+        assert False, f"conversion is undefined for T = {T}"
+        # ref.: http://www.brucelindbloom.com/index.html?Eqn_T_to_xy.html
+
+    y_D = -3.0 * x_D**2 + 2.78 * x_D - 0.275
+
+    return x_D, y_D
 
 
 def __mat_mul(m3, v3):
@@ -175,8 +211,9 @@ def __XYZ_to_sRGB(color, max_XYZ=__d65):
 
     x, y, z = [component / white for component, white in zip(color, max_XYZ)]
     if max_XYZ == __d50:
+        x, y, z = __mat_mul(__chromatic_adaptation_from_D50_to_D65, [x, y, z])
         r, g, b = __linear_RGB_to_sRGB(__mat_mul(__XYZ_to_sRGB1_under_D50, [x, y, z]))
-    else: # __d65 (default)
+    else: # __d65 (default sRGB reference white)
         r, g, b = __linear_RGB_to_sRGB(__mat_mul(__XYZ_to_sRGB1_under_D65, [x, y, z]))
 
     return [255 * min(max(0, _), 1) for _ in [r, g, b]]
@@ -187,7 +224,8 @@ def __sRGB_to_XYZ(color, max_XYZ=__d65):
     r, g, b = __sRGB_to_linear_RGB([component / 255 for component in color])
     if max_XYZ == __d50:
         x, y, z = __mat_mul(__sRGB1_to_XYZ_under_D50, [r, g, b])
-    else: # __d65 (default)
+        x, y, z = __mat_mul(__chromatic_adaptation_from_D65_to_D50, [x, y, z])
+    else: # __d65 (default sRGB reference white)
         x, y, z = __mat_mul(__sRGB1_to_XYZ_under_D65, [r, g, b])
 
     return [white * _ for _, white in zip([x, y, z], max_XYZ)]
@@ -264,7 +302,7 @@ def __convert(color, init, dest, max_XYZ):
     elif dest == "cielab":
         return __XYZ_to_CIELAB(__sRGB_to_XYZ(color, max_XYZ), max_XYZ)
     else: # sRGB
-        return [int(component) for component in color]
+        return [int(round(component)) for component in color]
 
 
 ###############################################################################
@@ -274,7 +312,7 @@ def __convert(color, init, dest, max_XYZ):
 def validate(color, color_space, max_XYZ):
     if color_space == "rgb":
         assert all(
-            int(component) == component for component in color
+            int(round(component)) == component for component in color
         ), f"rgb color components must be integers {color}"
         assert all(
             0 <= component <= 255 for component in color
@@ -314,18 +352,25 @@ def validate(color, color_space, max_XYZ):
 
 
 def main(args):
+    if args.whitepoint == 50:
+        whitepoint = __d50
+    elif args.whitepoint == 65:
+        whitepoint = __d65
+    else:
+        assert False, f"unsuported whitepoint D{args.whitepoint}"
+
     from_color = [float(component) for component in args.color]
-    validate(from_color, args.from_space, max_XYZ=__d50)
+    validate(from_color, args.from_space, max_XYZ=whitepoint)
 
     to_color = __convert(
-        from_color, init=args.from_space, dest=args.to_space, max_XYZ=__d50
+        from_color, init=args.from_space, dest=args.to_space, max_XYZ=whitepoint
     )
-    validate(to_color, args.to_space, max_XYZ=__d50)
+    validate(to_color, args.to_space, max_XYZ=whitepoint)
 
     def color2str(color, color_space, pts=1):
         if color_space == "rgb":
-            return ", ".join([f"{_:.0f}" for _ in from_color])
-        return ", ".join([f"{_:.{pts}f}" for _ in from_color])
+            return ", ".join([f"{_:.0f}" for _ in color])
+        return ", ".join([f"{_:.{pts}f}" for _ in color])
 
     print(
         f"{args.from_space.upper()}({color2str(from_color, args.from_space)})",
@@ -333,17 +378,28 @@ def main(args):
         f"{args.to_space.upper()}({color2str(to_color, args.to_space)})",
     )
 
+    return to_color
+
 
 ###############################################################################
 ###############################################################################
 
 
 def get_parser():
-    parser = argparse.ArgumentParser(description="Color space converter.")
-    parser.add_argument("from_space", type=str, metavar="from", choices=COLOR_SPACE_ALIASES)
-    parser.add_argument("to_space", type=str, metavar="to", choices=COLOR_SPACE_ALIASES)
-    parser.add_argument("color", nargs=3, type=float, action="store")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Increase verbosity")
+    parser = argparse.ArgumentParser(description="Color space converter for sRGB, CMY, HSV, XYZ and CIELAB.\n"
+
+        "Assumes the following ranges: "
+        "[0, 255] for sRGB; "
+        "[0.0, 100.0] for CMY; "
+        "[0.0, 360.0) for HSV hue; [0.0, 1.0] for HSV saturation and value; "
+        "[0.0, 100.0] for XYZ.\n"
+
+        "The three `color` arguments define the tristimulus values (i.e. the color components)."
+    )
+    parser.add_argument("from_space", type=str, metavar="from", choices=COLOR_SPACES, help="Initial color space")
+    parser.add_argument("to_space", type=str, metavar="to", choices=COLOR_SPACES, help="Destination color space")
+    parser.add_argument("color", nargs=3, type=float, action="store", help="Tristimulus values (i.e. color components)")
+    parser.add_argument("--whitepoint", "-D", default=50, choices=[50, 65], help="Reference whitepoint of illuminant series D")
     return parser
 
 
