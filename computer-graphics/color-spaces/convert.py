@@ -211,7 +211,6 @@ def __XYZ_to_sRGB(color, max_XYZ=__d65):
 
     x, y, z = [component / white for component, white in zip(color, max_XYZ)]
     if max_XYZ == __d50:
-        x, y, z = __mat_mul(__chromatic_adaptation_from_D50_to_D65, [x, y, z])
         r, g, b = __linear_RGB_to_sRGB(__mat_mul(__XYZ_to_sRGB1_under_D50, [x, y, z]))
     else: # __d65 (default sRGB reference white)
         r, g, b = __linear_RGB_to_sRGB(__mat_mul(__XYZ_to_sRGB1_under_D65, [x, y, z]))
@@ -224,7 +223,6 @@ def __sRGB_to_XYZ(color, max_XYZ=__d65):
     r, g, b = __sRGB_to_linear_RGB([component / 255 for component in color])
     if max_XYZ == __d50:
         x, y, z = __mat_mul(__sRGB1_to_XYZ_under_D50, [r, g, b])
-        x, y, z = __mat_mul(__chromatic_adaptation_from_D65_to_D50, [x, y, z])
     else: # __d65 (default sRGB reference white)
         x, y, z = __mat_mul(__sRGB1_to_XYZ_under_D65, [r, g, b])
 
