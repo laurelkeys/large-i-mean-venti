@@ -21,7 +21,7 @@ Image color clustering into k groups using the [k-means](https://en.wikipedia.or
  Image saved to o\mondrian5.jpg
 ```
 
-**Original image**         |  **Result image (with k=5)** 
+**Original image**         |  **Result image (with k=5)**
 :-------------------------:|:-------------------------:
 ![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/i/mondrian.jpg)  |  ![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5.jpg)
 
@@ -29,7 +29,7 @@ Image color clustering into k groups using the [k-means](https://en.wikipedia.or
 
 ![](https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_histogram.png)
 
-**Pixels with original color**         |  **Pixels grouped into k=5 clusters** 
+**Pixels with original color**         |  **Pixels grouped into k=5 clusters**
 :-------------------------:|:-------------------------:
 <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian_plot.png" width="500"/>  |  <img src="https://raw.githubusercontent.com/laurelkeys/large-i-mean-venti/master/clustering/o/mondrian5_clusters.png" width="500"/>
 
@@ -46,6 +46,11 @@ Based on this [post](https://timrodenbroeker.de/how-to-rasterize-an-image-with-p
 <!-- [![](https://i.gyazo.com/4a6a17d90a7f8ccd3e70f7e3bde2fee5.gif)](https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7) -->
 
 <a  href="https://editor.p5js.org/laurelkeys/sketches/6nMK4ljw7"><img  src="https://media.giphy.com/media/d9Ng621LiwumgM8hKC/giphy.gif"/></a>
+
+## 1d-fluid-sim[/](https://github.com/laurelkeys/large-i-mean-venti/tree/master/computer-graphics/1d-fluid-sim)
+Simple fluid simulation of two waves in one dimension, visualized with ASCII codes in the terminal.
+
+Based on Doyub Kim's book "Fluid Engine Development"(https://fluidenginedevelopment.org/).
 
 <!-- -->
 # genetic-algorithms
@@ -146,10 +151,10 @@ def poppins(vector):
     return score
 dim = len(target)
 
-model = Hive(lower_bound=[ord('a')]*dim, 
-             upper_bound=[ord('z')]*dim, 
-             swarm_size=100,  
-             max_cycles=3000, 
+model = Hive(lower_bound=[ord('a')]*dim,
+             upper_bound=[ord('z')]*dim,
+             swarm_size=100,
+             max_cycles=3000,
              objective_func=poppins,
              objective_value=dim)
 ```
